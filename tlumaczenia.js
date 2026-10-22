@@ -376,6 +376,23 @@ window.VAULT_I18N = {
 "Autorzy programu:": "Program authors:",
 "Instrukcja i aktualizacje": "Manual and updates",
 "wersja Cut 337 × 320 mm – mieści się na stole ok. 350 × 320 mm": "Cut version 337 × 320 mm – fits a bed of about 350 × 320 mm",
-"{name}: duża część – nie mieści się w obszarze {w}×{d} mm, więc zajmuje większy obszar {w2}×{d2} mm (pełna głębokość stołu); sprawdź jej położenie w slicerze": "{name}: large part – it does not fit the {w}×{d} mm area, so it uses the larger {w2}×{d2} mm area (full bed depth); check its position in the slicer"
+"{name}: duża część – nie mieści się w obszarze {w}×{d} mm, więc zajmuje większy obszar {w2}×{d2} mm (pełna głębokość stołu); sprawdź jej położenie w slicerze": "{name}: large part – it does not fit the {w}×{d} mm area, so it uses the larger {w2}×{d2} mm area (full bed depth); check its position in the slicer",
+"Serwer konfiguratora już działa (port {port} zajęty) – otwieram go w przeglądarce.": "The configurator server is already running (port {port} in use) – opening it in the browser.",
+"Jeśli to stara wersja, zamknij jej okno konsoli i uruchom konfigurator ponownie.": "If it is an old version, close its console window and start the configurator again.",
+"Konfigurator VAULT {ver} – rawel2, Claude (Anthropic). VAULT © USSA Design ({url})": "VAULT configurator {ver} – rawel2, Claude (Anthropic). VAULT © USSA Design ({url})",
+"Konfigurator VAULT: {url}": "VAULT configurator: {url}",
+"Biblioteka plików: {dir}": "File library: {dir}",
+"Zamknij to okno, aby zatrzymać serwer.": "Close this window to stop the server.",
+"BŁĄD: {msg}": "ERROR: {msg}",
+"Katalog biblioteki ustawiony na: {dir}": "Library folder set to: {dir}",
+"Gotowe w {s} s: {dir}": "Done in {s} s: {dir}",
+"Skopiowano {n} plików, płyt 3MF: {plates}": "Copied {n} files, 3MF plates: {plates}",
+"UWAGA: {msg}": "WARNING: {msg}",
+"Brak pliku ussa_print_data.json – połóż go w katalogu biblioteki albo ustaw \"dane_ussa\" w ustawienia.json.": "No ussa_print_data.json file – put it in the library folder or set \"dane_ussa\" in ustawienia.json.",
+"Pozycji z arkusza przypisanych do plików: {n} (uczących: {train})": "Data sheet entries matched to files: {n} (used for fitting: {train})",
+"Model gramy = {a}·cm3 + {b}·cm2   błąd mediana {med}, 90% {p90}": "Grams model = {a}·cm3 + {b}·cm2   error median {med}, 90% {p90}",
+"Model czas  = {a}·cm3 + {b}·cm2 [s]  błąd mediana {med}, 90% {p90}": "Time model  = {a}·cm3 + {b}·cm2 [s]  error median {med}, 90% {p90}",
+"Akcesoria skrzynki: model {ms} s / {mg} g, arkusz {ds} s / {dg} g -> skala czas {kt}, masa {kg}": "Box accessories: model {ms} s / {mg} g, data sheet {ds} s / {dg} g -> scale time {kt}, mass {kg}",
+"Zapisano {file}": "Saved {file}"
 }
 };

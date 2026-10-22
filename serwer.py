@@ -224,17 +224,18 @@ def main():
     try:
         srv = Serwer(("127.0.0.1", PORT), Obsluga)
     except OSError:
-        print(f"Serwer konfiguratora już działa (port {PORT} zajęty) – otwieram go w przeglądarce.\n"
-              "Jeśli to stara wersja, zamknij jej okno konsoli i uruchom uruchom.bat ponownie.")
+        print(tr("Serwer konfiguratora już działa (port {port} zajęty) – otwieram go w przeglądarce.", port=PORT))
+        print(tr("Jeśli to stara wersja, zamknij jej okno konsoli i uruchom konfigurator ponownie."))
         if "--bez-przegladarki" not in sys.argv:
             webbrowser.open(url)
         return
     s = opis_ustawien()
-    print(f"Konfigurator VAULT {WERSJA} – rawel2, Claude (Anthropic). VAULT © USSA Design ({USSA_URL})")
-    print(f"Konfigurator VAULT: {url}\nBiblioteka plików: {s['biblioteka']}" + ("" if s["ok"] else f"  (!) {s['message']}"))
+    print(tr("Konfigurator VAULT {ver} – rawel2, Claude (Anthropic). VAULT © USSA Design ({url})", ver=WERSJA, url=USSA_URL))
+    print(tr("Konfigurator VAULT: {url}", url=url))
+    print(tr("Biblioteka plików: {dir}", dir=s["biblioteka"]) + ("" if s["ok"] else f"  (!) {s['message']}"))
     if not s["ok"]:
         print(tr("Wskaż folder z plikami STL w oknie konfiguratora. Pliki VAULT sprzedaje USSA Design: {url}", url=USSA_URL))
-    print("Zamknij to okno, aby zatrzymać serwer.")
+    print(tr("Zamknij to okno, aby zatrzymać serwer."))
     if "--bez-przegladarki" not in sys.argv:
         webbrowser.open(url)
     try:
