@@ -123,8 +123,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         ok, komunikat = ustawienia.sprawdz_biblioteke(sys.argv[1])
         if not ok:
-            print("BŁĄD: " + komunikat)
+            print(tr("BŁĄD: {msg}", msg=komunikat))
             sys.exit(1)
         ustawienia.zapisz(biblioteka=sys.argv[1])
-        print(f"Katalog biblioteki ustawiony na: {Path(sys.argv[1]).resolve()}")
+        print(tr("Katalog biblioteki ustawiony na: {dir}", dir=Path(sys.argv[1]).resolve()))
     skanuj(lambda s: print("  " + s, flush=True))

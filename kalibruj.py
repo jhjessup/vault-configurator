@@ -15,6 +15,7 @@ from pathlib import Path
 import numpy as np
 
 import ustawienia
+from jezyk import tr
 
 TU = Path(__file__).resolve().parent
 sys.stdout.reconfigure(encoding="utf-8")
@@ -31,7 +32,7 @@ if _kat.exists():
     GEOM = {k: v for k, v in GEOM.items() if k in set(_pliki)}
 _plik_ussa = ustawienia.plik_danych_ussa()
 if _plik_ussa is None:
-    sys.exit("Brak pliku ussa_print_data.json – połóż go w katalogu biblioteki albo ustaw \"dane_ussa\" w ustawienia.json.")
+    sys.exit(tr("Brak pliku ussa_print_data.json – połóż go w katalogu biblioteki albo ustaw \"dane_ussa\" w ustawienia.json."))
 DANE = json.loads(_plik_ussa.read_text(encoding="utf-8"))
 
 
@@ -129,9 +130,11 @@ def dopasuj(X, y):
 kg, kt = dopasuj(X, yg), dopasuj(X, yt)
 bl_g = np.abs(X @ kg - yg) / yg
 bl_t = np.abs(X @ kt - yt) / yt
-print(f"Pozycji z arkusza przypisanych do plików: {len(zrodlo)} (uczących: {len(uczace)})")
-print(f"Model gramy = {kg[0]:.3f}·cm3 + {kg[1]:.4f}·cm2   błąd mediana {np.median(bl_g):.0%}, 90% {np.percentile(bl_g, 90):.0%}")
-print(f"Model czas  = {kt[0]:.1f}·cm3 + {kt[1]:.2f}·cm2 [s]  błąd mediana {np.median(bl_t):.0%}, 90% {np.percentile(bl_t, 90):.0%}")
+print(tr("Pozycji z arkusza przypisanych do plików: {n} (uczących: {train})", n=len(zrodlo), train=len(uczace)))
+print(tr("Model gramy = {a}·cm3 + {b}·cm2   błąd mediana {med}, 90% {p90}", a=f"{kg[0]:.3f}", b=f"{kg[1]:.4f}",
+         med=f"{np.median(bl_g):.0%}", p90=f"{np.percentile(bl_g, 90):.0%}"))
+print(tr("Model czas  = {a}·cm3 + {b}·cm2 [s]  błąd mediana {med}, 90% {p90}", a=f"{kt[0]:.1f}", b=f"{kt[1]:.2f}",
+         med=f"{np.median(bl_t):.0%}", p90=f"{np.percentile(bl_t, 90):.0%}"))
 
 # warianty skrzynek L/XL (Dividers/Sealed) i dzielone wieka – skaluj wartość z arkusza przez model
 def model(p):
@@ -158,7 +161,8 @@ komplet = [("Locks/LOCK HOLDER.stl", 2), ("Locks/LOCK INNER PART.stl", 2), ("Loc
            ("Rods/S-M Rods.stl", 1)]
 suma = sum(model(U + p) * n for p, n in komplet)
 skala = np.array([akc["seconds"], akc["grams"]]) / suma
-print(f"Akcesoria skrzynki: model {suma[0]:.0f} s / {suma[1]:.1f} g, arkusz {akc['seconds']} s / {akc['grams']} g -> skala czas {skala[0]:.2f}, masa {skala[1]:.2f}")
+print(tr("Akcesoria skrzynki: model {ms} s / {mg} g, arkusz {ds} s / {dg} g -> skala czas {kt}, masa {kg}",
+         ms=f"{suma[0]:.0f}", mg=f"{suma[1]:.1f}", ds=akc["seconds"], dg=akc["grams"], kt=f"{skala[0]:.2f}", kg=f"{skala[1]:.2f}"))
 for p in GEOM:
     if re.match(r"^02\. sustainers/05\. universal/(locks|hinges|rods)/", norm(p)):
         zrodlo[p] = [*(model(p) * skala), True]
@@ -173,4 +177,4 @@ with open(TU / "dane_druku.js", "w", encoding="utf-8") as f:
     f.write("window.VAULT_PRINT = ")
     json.dump(dane, f, ensure_ascii=False, separators=(",", ":"))
     f.write(";\n")
-print(f"Zapisano {TU / 'dane_druku.js'}")
+print(tr("Zapisano {file}", file=TU / "dane_druku.js"))

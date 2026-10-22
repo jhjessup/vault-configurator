@@ -382,7 +382,7 @@ if __name__ == "__main__":
         sys.exit(1)
     z = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     w = przygotuj(z, lambda s: print("  " + s, flush=True))
-    print(f"\nGotowe w {w['seconds']} s: {w['folder']}")
-    print(f"Skopiowano {w['copied']} plików, płyt 3MF: {len(w['plates'])}")
+    print("\n" + tr("Gotowe w {s} s: {dir}", s=w["seconds"], dir=w["folder"]))
+    print(tr("Skopiowano {n} plików, płyt 3MF: {plates}", n=w["copied"], plates=len(w["plates"])))
     for o in w["warnings"]:
-        print("UWAGA: " + o)
+        print(tr("UWAGA: {msg}", msg=o))
