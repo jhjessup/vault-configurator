@@ -204,8 +204,10 @@ function tr(text, vars) {
   }
   return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
 }
+// "auto": pierwszy obsługiwany język z listy przeglądarki (kolejność = preferencje użytkownika), inaczej angielski
 const resolveLang = choice => choice === "pl" || choice === "en" ? choice
-  : ((navigator.languages || [navigator.language || ""]).some(l => /^pl\b/i.test(l)) ? "pl" : "en");
+  : ((navigator.languages || [navigator.language || ""]).map(l => l.toLowerCase().split("-")[0])
+      .find(l => l === "pl" || l === "en") || "en");
 const locale = () => LANGS[LANG];
 // Teksty w statycznym HTML: data-tr (treść), data-tr-title, data-tr-placeholder; oryginał (polski) zapamiętywany przy pierwszym użyciu
 function applyStaticTr() {

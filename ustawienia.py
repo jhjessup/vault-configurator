@@ -1,14 +1,15 @@
 """Ustawienia wspólne dla skryptów konfiguratora: katalog biblioteki VAULT (pliki STL/PDF) i katalog wyjściowy.
 
 Zapisywane w ustawienia.json obok skryptów. Bez pliku ustawień przyjmowane są wartości domyślne:
-biblioteka = ..\\vault (jeśli istnieje, inaczej katalog nadrzędny), wyjście = ..\\do_druku.
+biblioteka = ..\\vault (jeśli istnieje, inaczej katalog nadrzędny), wyjście = ..\\do_druku (jeśli istnieje albo system
+jest po polsku, inaczej ..\\to_print).
 "zeskanowano" = katalog, z którego skanuj.py zrobił katalog.js (brak, póki nie było skanu na tym komputerze).
 "dane_ussa" = plik ussa_print_data.json (dane USSA Design, nie ma ich w repo) – opcjonalnie, patrz plik_danych_ussa().
 """
 import json
 from pathlib import Path
 
-from jezyk import tr
+from jezyk import SYSTEM, tr
 
 TU = Path(__file__).resolve().parent
 PLIK = TU / "ustawienia.json"
@@ -17,6 +18,12 @@ PLIK = TU / "ustawienia.json"
 def _domyslna_biblioteka():
     vault = TU.parent / "vault"
     return vault if vault.is_dir() else TU.parent
+
+
+def _domyslne_wyjscie():
+    # język systemu, nie bieżącego zapytania – inaczej domyślny folder zmieniałby się z językiem przeglądarki
+    do_druku = TU.parent / "do_druku"
+    return do_druku if do_druku.is_dir() or SYSTEM == "pl" else TU.parent / "to_print"
 
 
 def wczytaj():
@@ -29,7 +36,7 @@ def wczytaj():
             d = {}
     return {
         "biblioteka": Path(d.get("biblioteka") or _domyslna_biblioteka()).resolve(),
-        "wyjscie": Path(d.get("wyjscie") or TU.parent / "do_druku").resolve(),
+        "wyjscie": Path(d.get("wyjscie") or _domyslne_wyjscie()).resolve(),
         "zeskanowano": Path(d["zeskanowano"]).resolve() if d.get("zeskanowano") else None,
         "dane_ussa": Path(d["dane_ussa"]).resolve() if d.get("dane_ussa") else None,
     }

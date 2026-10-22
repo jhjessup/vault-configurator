@@ -40,7 +40,7 @@ def _jezyk_systemu():
     return "en"
 
 
-_SYSTEM = _jezyk_systemu()
+SYSTEM = _jezyk_systemu()
 
 
 def ustaw(lang):
@@ -48,7 +48,7 @@ def ustaw(lang):
 
 
 def biezacy():
-    return getattr(_watek, "lang", _SYSTEM)
+    return getattr(_watek, "lang", SYSTEM)
 
 
 def tr(tekst, **wartosci):
