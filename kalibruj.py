@@ -1,4 +1,4 @@
-"""Łączy arkusz czasów druku USSA (dane/ussa_print_data.json, Bambu Lab H2S, basic settings)
+"""Łączy arkusz czasów druku USSA (ussa_print_data.json, Bambu Lab H2S, basic settings – gdzie szukać: ustawienia.py)
 z geometrią plików STL i zapisuje dane_druku.js dla konfiguratora.
 
 - Pliki, które da się przypisać do pozycji z arkusza, dostają wartości z arkusza.
@@ -14,6 +14,8 @@ from pathlib import Path
 
 import numpy as np
 
+import ustawienia
+
 TU = Path(__file__).resolve().parent
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -27,7 +29,10 @@ if _kat.exists():
     _a = _t.index("window.VAULT_FILES = ") + len("window.VAULT_FILES = ")
     _pliki = json.loads(_t[_a:_t.index(";", _t.index("]", _a))])
     GEOM = {k: v for k, v in GEOM.items() if k in set(_pliki)}
-DANE = json.loads((TU / "dane" / "ussa_print_data.json").read_text(encoding="utf-8"))
+_plik_ussa = ustawienia.plik_danych_ussa()
+if _plik_ussa is None:
+    sys.exit("Brak pliku ussa_print_data.json – połóż go w katalogu biblioteki albo ustaw \"dane_ussa\" w ustawienia.json.")
+DANE = json.loads(_plik_ussa.read_text(encoding="utf-8"))
 
 
 def norm(p):

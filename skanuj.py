@@ -112,7 +112,7 @@ def skanuj(postep=print):
     ustawienia.zapisz(zeskanowano=bib)
     postep(tr("Zapisano {n} plików STL ({new} przeliczonych) i {docs} instrukcji z {dir}", n=len(pliki), new=nowe, docs=len(dokumenty), dir=bib))
 
-    if (TU / "dane" / "ussa_print_data.json").exists():
+    if ustawienia.plik_danych_ussa():
         postep(tr("szacunek czasu druku (kalibruj.py)…"))
         runpy.run_path(str(TU / "kalibruj.py"), run_name="__main__")
     return len(pliki)
