@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Per-machine settings
+ustawienia.json
+
+# Generated from the user's VAULT STL library (skanuj.py / kalibruj.py)
+katalog.js
+geometria_cache.json
+dane_druku.js
+
+# USSA Design materials - not redistributed; buy them from https://www.ussadesign.com/pages/vault
+dane/
+*.pdf
+
+# Build output
+dist/

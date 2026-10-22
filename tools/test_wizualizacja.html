@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+  Test wizualizacji 3D: wczytuje konfigurator w ramce z przykładową wieżą, otwiera okno 3D i liczy klatki ręcznie
+  (działa też w przeglądarce bez okna, gdzie requestAnimationFrame stoi). Zapisany projekt jest przywracany po teście.
+  Adres (serwer z uruchom.bat): http://127.0.0.1:8766/konfigurator/tools/test_wizualizacja.html#widok=q&otwarte=1&wymiary=1&wszystkie=1
+  Inne parametry: lang=en, dach=grid|table|bowl|under|heavy, paleta=ussa|black|white|graphite|forest, kola=0, stopka=0,
+  kregoslup=ded|uni|none, pegboard=ikea|ussa|none, sciana=1, uchwyt=staly|wysuwany,
+  okno=0 (bez okna 3D – sam konfigurator), zakladka=print|hw|job.
+  Zrzut bez okna:
+    msedge --headless=new --enable-unsafe-swiftshader --user-data-dir=<tymczasowy> --window-size=1400,900
+           --virtual-time-budget=4000 --screenshot=<plik.png> "<adres powyżej>"
+  W tytule strony pojawia się „OK” albo „BŁĄD: …”.
+-->
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>test wizualizacji</title>
+<style>html, body { margin: 0; height: 100%; } iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }</style>
+</head>
+<body>
+<script>
+const KLUCZ = "vault-konfigurator-v1";
+const opcje = Object.fromEntries(location.hash.slice(1).split("&").filter(Boolean).map(p => p.split("=")));
+const kol = (h, extra = {}) => ({ pattern: [h], insert: "none", sInt: "flat", div: { n: 0, w: 0, d: 0, s: 0, sc: 0, ss: 0 }, ...extra });
+const mods = (m = {}) => ({ base: false, baseSplit: false, wheels: false, feet: false, backbone: "none", pegboard: "none", wall: false, handleStatic: false, handlePull: false, ...m });
+const TEST = {
+  lang: opcje.lang || "pl", current: 0, key: "normal", rails: "auto", extras: [], tab: opcje.zakladka || "print", speed: 1, price: 80,
+  job: { printer: "h2d", bed: [350, 320, 320], gap: 5, copy: true, make3mf: true },
+  viz: { palette: opcje.paleta || "ussa", labels: true,
+    dims: opcje.wymiary === "1", all: opcje.wszystkie === "1", rotate: false },
+  stacks: [
+    { id: 1, name: "Warsztat", qty: 2, depth: 4, roof: opcje.dach || "grid", topHandle: true,
+      layers: [
+        { id: 2, type: "D", layout: "L2", height: 1, cols: [kol(1), kol(1)] },
+        { id: 3, type: "D", layout: "L", height: 4, cols: [kol(4, { pattern: [2, 1, 1], insert: "grid" })] },
+        { id: 4, type: "S", layout: "SS", height: 2, cols: [kol(2, { grid: true }), kol(2)] },
+        { id: 5, type: "D", layout: "L", height: 2, cols: [kol(2, { pattern: [1, 1] })] },
+      ],
+      mods: mods({ base: true, wheels: opcje.kola !== "0", feet: opcje.stopka !== "0", backbone: opcje.kregoslup || "ded",
+        pegboard: opcje.pegboard || "ikea", wall: opcje.sciana === "1", handleStatic: opcje.uchwyt === "staly", handlePull: opcje.uchwyt === "wysuwany" }) },
+    { id: 6, name: "Biurko", qty: 1, depth: 3, roof: "table", topHandle: false,
+      layers: [
+        { id: 7, type: "D", layout: "S", height: 2, cols: [kol(2, { pattern: [1, 1] })] },
+        { id: 8, type: "D", layout: "S", height: 1, cols: [kol(1)] },
+      ],
+      mods: mods({ feet: true, handleStatic: true }) },
+  ],
+};
+const zapisany = localStorage.getItem(KLUCZ);
+localStorage.setItem(KLUCZ, JSON.stringify(TEST));
+const przywroc = () => { if (zapisany === null) localStorage.removeItem(KLUCZ); else localStorage.setItem(KLUCZ, zapisany); };
+
+const f = document.createElement("iframe");
+f.src = "../index.html";
+f.onload = () => {
+  const w = f.contentWindow;
+  try {
+    const bledy = [];
+    w.addEventListener("error", e => bledy.push(e.message));
+    if (opcje.okno === "0") { document.title = "OK (bez okna 3D)"; return; }  // zrzut samego konfiguratora
+    w.openViz();
+    const V = w.eval("VIZ");  // let w skrypcie strony – nie jest właściwością window
+    for (let i = 0; i < 5; i++) V.step(16);
+    V.view(opcje.widok || "q");
+    if (opcje.otwarte === "1") V.setAll(1);
+    for (let i = 0; i < 240; i++) V.step(16);
+    const n = w.document.querySelectorAll(".viz-label").length;
+    document.title = bledy.length ? "BŁĄD: " + bledy.join("; ") : `OK (${n} opisów)`;
+  } catch (e) {
+    document.title = "BŁĄD: " + e.message;
+  } finally {
+    przywroc();
+  }
+};
+document.body.append(f);
+</script>
+</body>
+</html>

@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konfigurator VAULT</title>
+<style>
+:root {
+  --bg: #f4f4f2; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #dcdcd6;
+  --accent: #e8662b; --accent-ink: #ffffff; --drawer: #c9ccd1; --sust: #9fb3a4; --warn: #b3261e; --warn-bg: #fbe9e7;
+  --chip: #eeeeea;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #161615; --panel: #212120; --ink: #ececea; --muted: #a0a09a; --line: #3a3a37;
+    --drawer: #5d636b; --sust: #4f6a57; --warn: #ff8a80; --warn-bg: #3a1f1d; --chip: #2c2c2a; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.4 system-ui, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+header h1 { font-size: 18px; margin: 0; letter-spacing: .5px; }
+header .opts { display: flex; gap: 14px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+main { display: grid; grid-template-columns: 220px minmax(380px, 1fr) minmax(420px, 1.2fr); gap: 12px; padding: 12px; }
+@media (max-width: 1200px) { main { grid-template-columns: 1fr; } }
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+h2 { font-size: 15px; margin: 0 0 10px; }
+h3 { font-size: 13px; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+button { font: inherit; border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.small { padding: 1px 7px; font-size: 12px; }
+select, input[type=number], input[type=text], input[type=search] { font: inherit; border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; background: var(--panel); color: var(--ink); }
+input[type=number] { width: 58px; }
+label { white-space: nowrap; }
+.stack-list { list-style: none; padding: 0; margin: 0 0 10px; }
+.stack-list li { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.stack-list li.active { border-color: var(--accent); background: var(--chip); }
+.stack-list .meta { color: var(--muted); font-size: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.layer { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+.layer.top { border-color: var(--accent); }
+.layer-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.layer-head .idx { font-weight: 600; min-width: 64px; }
+.layer-head .tools { margin-left: auto; display: flex; gap: 4px; }
+.cols { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 150px; background: var(--chip); border-radius: 6px; padding: 6px 8px; }
+.col .fam { font-weight: 600; margin-bottom: 4px; }
+.col .row { margin-bottom: 4px; gap: 6px; }
+.preview { position: relative; display: flex; flex-direction: column-reverse; align-items: center; gap: 9px; padding: 18px 10px 10px; background: var(--chip); border-radius: 8px; margin-bottom: 10px; }
+.viz-open { position: absolute; top: 6px; right: 6px; }
+/* okno pierwszego uruchomienia: folder z plikami STL */
+.setup-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter: blur(2px); }
+.setup { width: 100%; max-width: 640px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+.setup p { margin: 0 0 10px; }
+.setup-ussa a { color: var(--accent); font-weight: 600; }
+/* okno wizualizacji 3D (wizualizacja.js) */
+.viz-overlay { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: var(--bg); }
+.viz-bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.viz-group { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.viz-bar button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.viz-bar input[type=color] { width: 30px; height: 24px; padding: 0 2px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); cursor: pointer; }
+.viz-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 30%, var(--panel), var(--bg) 75%); }
+.viz-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.viz-labels { position: absolute; inset: 0; pointer-events: none; }
+.viz-label { position: absolute; transform: translate(-50%, -50%); padding: 1px 6px; font-size: 12px; white-space: nowrap; color: var(--ink);
+  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 4px; }
+.viz-label.layer { transform: translate(-100%, -50%); }
+.viz-label.stack { transform: translate(-50%, -100%); font-weight: 600; }
+.viz-label.dim { color: var(--accent); font-weight: 600; border-color: var(--accent); }
+.viz-foot { margin: 0; padding: 6px 12px; border-top: 1px solid var(--line); background: var(--panel); }
+.pv-layer { display: flex; gap: 4px; }
+.pv-mod { position: relative; display: flex; gap: 2px; padding: 3px; border: 2px solid var(--muted); border-radius: 6px; background: var(--panel); }
+.pv-mod.s { border-color: var(--sust); }
+.pv-tag { position: absolute; top: -9px; left: 6px; padding: 0 4px; font-size: 10px; line-height: 14px; font-weight: 600; color: var(--muted); background: var(--chip); border-radius: 3px; }
+.pv-col { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pv-box { display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink); border-radius: 3px; position: relative; }
+.pv-box.d { background: var(--drawer); }
+.pv-box.s { background: var(--sust); }
+.pv-box.d::after { content: ""; position: absolute; right: 12%; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); opacity: .55; }
+.pv-roof { height: 8px; background: var(--accent); border-radius: 3px 3px 0 0; opacity: .8; }
+.pv-base { height: 10px; background: var(--muted); border-radius: 0 0 3px 3px; }
+.hint { color: var(--muted); font-size: 12px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.tabs button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
+td.q { text-align: right; font-weight: 600; white-space: nowrap; }
+td .path { color: var(--muted); font-size: 11px; }
+td .used { color: var(--muted); font-size: 11px; }
+tr.missing td { color: var(--warn); background: var(--warn-bg); }
+tr.grp td { background: var(--chip); font-weight: 600; }
+.note { color: var(--warn); font-size: 11px; }
+.tablewrap { max-height: calc(100vh - 230px); overflow: auto; }
+a { color: inherit; }
+.summary { margin-bottom: 8px; }
+.extras-search { max-height: 220px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; margin: 6px 0; }
+.extras-search div { padding: 2px 6px; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+.extras-search div:hover { background: var(--chip); }
+fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; margin: 0 0 8px; }
+legend { color: var(--muted); font-size: 12px; }
+.err { color: var(--warn); font-weight: 600; }
+.foot { padding: 0 16px 16px; color: var(--muted); font-size: 12px; }
+.foot a { color: var(--accent); }
+td.est { text-align: right; white-space: nowrap; font-size: 12px; }
+span.est.ussa::before, td.est.ussa > div:first-child::before, td.est.calc > div:first-child::before { content: "● "; color: var(--accent); }
+span.est.geom::before, td.est.geom > div:first-child::before { content: "○ "; color: var(--muted); }
+td.est.geom { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-tr>VAULT · konfigurator</h1>
+  <div class="opts">
+    <label><span data-tr>Język:</span>
+      <select id="optLang"><option value="auto" data-tr>automatycznie</option><option value="pl">Polski</option><option value="en">English</option></select>
+    </label>
+    <label><span data-tr>Kluczyk:</span>
+      <select id="optKey"><option value="normal" data-tr>zwykły + nakładka</option><option value="hidden" data-tr>ukryty (Hidden Key)</option></select>
+    </label>
+    <label><span data-tr>Listwy zębate (Geared Rails):</span>
+      <select id="optRails">
+        <option value="auto" data-tr>gdy kilka szuflad w module</option>
+        <option value="always" data-tr>w każdej szufladzie</option>
+        <option value="never" data-tr>nigdy</option>
+      </select>
+    </label>
+    <label data-tr-title="1.0 = Bambu Lab H2S, basic settings (wg arkusza USSA). Wolniejsza drukarka/profil → większa wartość."><span data-tr>Mnożnik czasu:</span>
+      <input type="number" id="optSpeed" min="0.2" max="5" step="0.1" style="width:64px">
+    </label>
+    <label><span data-tr>Filament zł/kg:</span> <input type="number" id="optPrice" min="0" step="5" style="width:64px"></label>
+    <button id="btnSave" data-tr>Zapisz projekt</button>
+    <button id="btnLoad" data-tr>Wczytaj projekt</button>
+    <input type="file" id="fileLoad" accept=".json" hidden>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2 data-tr>Zestawy (stosy)</h2>
+    <ul class="stack-list" id="stackList"></ul>
+    <div class="row">
+      <button class="primary" id="btnAddStack" data-tr>+ Nowy</button>
+      <button id="btnDupStack" data-tr>Duplikuj</button>
+      <button id="btnDelStack" data-tr>Usuń</button>
+    </div>
+    <p class="hint" data-tr>Każdy zestaw to jedna wieża modułów o wspólnej głębokości. Wynik po prawej sumuje wszystkie zestawy razy ich ilość.</p>
+    <h3 data-tr>Dodatkowe pliki</h3>
+    <p class="hint" data-tr>Np. przegródki siatkowe do szuflad (Grid Dividers), podpory ręczne, zapasowe części.</p>
+    <input type="search" id="extraSearch" data-tr-placeholder="szukaj pliku…" style="width:100%">
+    <div class="extras-search" id="extraResults" hidden></div>
+    <div id="extrasList"></div>
+    <h3 data-tr>Biblioteka plików</h3>
+    <div id="libBox"></div>
+    <h3 data-tr>Instrukcje</h3>
+    <div id="docsBox"></div>
+  </section>
+
+  <section class="card" id="editor"></section>
+
+  <section class="card">
+    <div class="tabs">
+      <button data-tab="print" class="on" data-tr>Do druku</button>
+      <button data-tab="hw" data-tr>Niedrukowane</button>
+      <button data-tab="job" data-tr>Przygotuj wydruk</button>
+      <span style="margin-left:auto"></span>
+      <button class="primary" id="btnCsv" data-tr>Eksport CSV</button>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="tablewrap" id="result"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span data-tr>VAULT to system pojemników firmy USSA Design. Ten program jest nieoficjalnym narzędziem i nie zawiera plików STL – kupisz je u producenta:</span>
+  <a href="https://www.ussadesign.com/pages/vault" target="_blank" rel="noopener">ussadesign.com/pages/vault</a> ·
+  <span data-tr>Autorzy programu:</span> rawel2, Claude (Anthropic) ·
+  <a href="https://github.com/rawel2/Vault-Konfigurator-wydania/releases/latest" target="_blank" rel="noopener" data-tr>Instrukcja i aktualizacje</a>
+</footer>
+
+<script>
+  // pliki z danymi zmieniają się po skanowaniu – wczytuj je zawsze świeże (bez pamięci podręcznej przeglądarki)
+  for (const f of ["katalog.js", "dane_druku.js", "drukarki.js", "tlumaczenia.js"])
+    document.write(`<script src="${f}?t=${Date.now()}"><\/script>`);
+</script>
+<!-- wizualizacja 3D: same funkcje, globalne z poniższego skryptu są używane dopiero przy otwarciu okna -->
+<script src="wizualizacja.js"></script>
+<script>
+"use strict";
+
+// ---------- Języki ----------
+// tr("tekst polski", {zmienne}) – tłumaczenie ze słownika tlumaczenia.js; klucz to tekst polski, {nazwa} = wartość.
+// Każdy nowy tekst w UI przechodzi przez tr() i dostaje wpis w tlumaczenia.js (sprawdza tools/test_tlumaczen.js).
+const I18N = window.VAULT_I18N || {};
+const LANGS = { pl: "pl-PL", en: "en-US" };
+let LANG = "pl";
+const MISSING_TR = new Set();  // brakujące tłumaczenia (do testu)
+function tr(text, vars) {
+  let s = text;
+  if (LANG !== "pl") {
+    const d = I18N[LANG] || {};
+    if (Object.prototype.hasOwnProperty.call(d, text)) s = d[text]; else MISSING_TR.add(text);
+  }
+  return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
+}
+const resolveLang = choice => choice === "pl" || choice === "en" ? choice
+  : ((navigator.languages || [navigator.language || ""]).some(l => /^pl\b/i.test(l)) ? "pl" : "en");
+const locale = () => LANGS[LANG];
+// Teksty w statycznym HTML: data-tr (treść), data-tr-title, data-tr-placeholder; oryginał (polski) zapamiętywany przy pierwszym użyciu
+function applyStaticTr() {
+  document.documentElement.lang = LANG;
+  document.title = tr("Konfigurator VAULT");
+  for (const e of document.querySelectorAll("[data-tr]")) {
+    if (!e.dataset.trSrc) e.dataset.trSrc = e.textContent.trim();
+    e.textContent = tr(e.dataset.trSrc);
+  }
+  for (const a of ["title", "placeholder"])
+    for (const e of document.querySelectorAll(`[data-tr-${a}]`)) e.setAttribute(a, tr(e.getAttribute(`data-tr-${a}`)));
+}
+
+// ---------- Katalog plików ----------
+const FILES = window.VAULT_FILES || [];
+const DOCS = window.VAULT_DOCS || [];
+// Ścieżka biblioteki nie jest w katalog.js (ten plik jest w repo, a biblioteka leży na każdym komputerze gdzie indziej) –
+// przychodzi z ustawień serwera (SERVER.settings.biblioteka).
+// Adres pliku z biblioteki: przez serwer (/biblioteka/...) albo względnie (..\vault – domyślne położenie), gdy strona otwarta jako plik
+const fileUrl = rel => {
+  const enc = rel.split("/").map(encodeURIComponent).join("/");
+  return location.protocol === "file:" ? "../vault/" + enc : "/biblioteka/" + enc;
+};
+const samePath = (a, b) => (a || "").replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase() === (b || "").replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+const norm = p => p.toLowerCase().replace(/['’]/g, "").replace(/\s+/g, " ").replace(/ \//g, "/").replace(/ \.stl$/, ".stl");
+const CATALOG = FILES.map(p => ({ p, n: norm(p) }));
+const findAll = rx => CATALOG.filter(f => rx.test(f.n)).map(f => f.p);
+const R = (strings, ...vals) => new RegExp(String.raw(strings, ...vals));
+
+// ---------- Szacunek druku ----------
+const GEOM = window.VAULT_GEOM || {};
+const PRINT = window.VAULT_PRINT || null;
+// Zwraca czas [s] i filament [g] dla 1 sztuki pliku (przy mnożniku 1.0) oraz źródło danych
+function estimate(file) {
+  if (!PRINT) return null;
+  const s = PRINT.source[file];
+  if (s) return { sec: s[0], g: s[1], src: s[2] ? "calc" : "ussa" };
+  const g = GEOM[file];
+  if (!g) return null;
+  const [mg, mt] = [PRINT.model.g, PRINT.model.t];
+  return { sec: mt[0] * g[0] + mt[1] * g[1], g: mg[0] * g[0] + mg[1] * g[1], src: "geom" };
+}
+const SRC_LABEL = { ussa: "z arkusza USSA", calc: "arkusz USSA (wartość wyliczona)", geom: "szacunek z geometrii STL" };
+function fmtTime(sec) {
+  const min = Math.round(sec / 60);
+  if (min < 60) return min + " min";
+  const h = Math.floor(min / 60), m = min % 60;
+  if (h < 48) return `${h} h ${String(m).padStart(2, "0")} min`;
+  return `${Math.floor(h / 24)} d ${h % 24} h`;
+}
+const fmtG = g => g >= 1000 ? (g / 1000).toLocaleString(locale(), { maximumFractionDigits: 2 }) + " kg" : Math.round(g) + " g";
+
+// ---------- Reguły systemu ----------
+const FAMILIES = { S: ["S"], M: ["M"], L: ["L"], XL: ["XL"], SS: ["S", "S"], SM: ["S", "M"], L2: ["S", "S"], XL2: ["S", "M"] };
+const LAYOUT_LABEL = {
+  S: "S", M: "M", L: "L", XL: "XL",
+  SS: "2× S (osobne moduły)", SM: "S + M (osobne moduły)",
+  L2: "L² (moduł L, 2 szuflady S)", XL2: "XL² (moduł XL, szuflady S + M)"
+};
+// S, M, L, XL to oznaczenia – tłumaczone są tylko opisowe etykiety układów
+const layoutLabel = x => (LAYOUT_LABEL[x] !== x ? tr(LAYOUT_LABEL[x]) : x);
+const WIDTH_MM = { S: 164.8, M: 174.8, L: 329.6, XL: 339.6 };
+const PATTERNS = { 1: [[1]], 2: [[2], [1, 1]], 4: [[4], [2, 2], [1, 1, 1, 1], [2, 1, 1], [1, 1, 2]] };
+const ROOFS = { none: "brak", grid: "Grid (gridfinity)", table: "Table (płaski)", bowl: "Bowl (misa)", under: "Under Table Mount (pod blat)", heavy: "Heavyweight (L, XL)" };
+const ROOF_FILE = { grid: "grid", table: "table", bowl: "bowl", under: "under table mount", heavy: "heawyweight" };
+const ROD_MM = { XL: 504, L: 414, M: 338, S: 248 };
+
+// Szerokość, jaką układ zajmuje w wieży (L = S+S, XL = S+M)
+const LAYOUT_WIDTH = { S: "S", M: "M", L: "L", XL: "XL", SS: "L", L2: "L", SM: "XL", XL2: "XL" };
+// base = szerokość wieży (null dla warstwy 1 – wtedy dowolny układ, który wyznaczy szerokość)
+function allowedLayouts(type, base) {
+  let list = base ? { S: ["S"], M: ["M"], L: ["L", "SS", "L2"], XL: ["XL", "SM", "XL2"] }[base]
+    : ["S", "M", "L", "SS", "L2", "XL", "SM", "XL2"];
+  if (type === "S") list = list.filter(l => l !== "L2" && l !== "XL2");
+  return list;
+}
+const allowedHeights = layout => (layout === "XL" || layout === "XL2") ? [1] : [1, 2, 4];
+const allowedPatterns = (type, h) => type === "S" ? [[h]] : PATTERNS[h];
+const baseWidth = stack => stack.layers.length ? LAYOUT_WIDTH[stack.layers[0].layout] : "S";
+
+// ---------- Stan ----------
+const STORE = "vault-konfigurator-v1";
+let uid = 1;
+const newCol = h => ({ pattern: [h], insert: "none", sInt: "flat", div: { n: 0, w: 0, d: 0, s: 0, sc: 0, ss: 0 } });
+const newLayer = (type = "D", layout = "S", height = 1) => ({ id: uid++, type, layout, height, cols: FAMILIES[layout].map(() => newCol(height)) });
+const newStack = n => ({
+  id: uid++, name: tr("Zestaw {n}", { n }), qty: 1, depth: 3, layers: [newLayer()],
+  roof: "grid", topHandle: false,
+  mods: { base: false, baseSplit: false, wheels: false, feet: false, backbone: "none", pegboard: "none", wall: false, handleStatic: false, handlePull: false }
+});
+let state = { lang: "auto", stacks: [newStack(1)], current: 0, key: "normal", rails: "auto", extras: [], tab: "print", speed: 1, price: 80,
+  job: { printer: "h2s", bed: [340, 320, 340], gap: 5, copy: true, make3mf: true } };
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE));
+    if (s && Array.isArray(s.stacks) && s.stacks.length) state = Object.assign(state, s);
+  } catch (e) { /* brak zapisu */ }
+  fixIds();
+}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* tryb prywatny */ } }
+function fixIds() {
+  for (const st of state.stacks) { uid = Math.max(uid, st.id + 1); for (const l of st.layers) uid = Math.max(uid, l.id + 1); }
+  state.current = Math.min(state.current, state.stacks.length - 1);
+}
+const cur = () => state.stacks[state.current];
+
+// Pilnuje, by warstwy były zgodne z regułami po każdej zmianie
+function normalizeStack(st) {
+  st.layers.forEach((l, i) => {
+    const allowed = allowedLayouts(l.type, i ? baseWidth(st) : null);
+    if (!allowed.includes(l.layout)) {
+      // najbliższy dozwolony odpowiednik: L² skrzynek → 2× S, zmiana L↔XL → bliźniaczy układ, na końcu pełny moduł
+      const alt = [{ L2: "SS", XL2: "SM" }[l.layout], { SS: "SM", SM: "SS", L2: "XL2", XL2: "L2" }[l.layout],
+        { SS: "L", L2: "L", SM: "XL", XL2: "XL" }[l.layout]];
+      l.layout = alt.find(a => allowed.includes(a)) || allowed[0];
+    }
+    if (!allowedHeights(l.layout).includes(l.height)) l.height = 1;
+    const fams = FAMILIES[l.layout];
+    if (l.cols.length !== fams.length) l.cols = fams.map((_, k) => l.cols[k] || newCol(l.height));
+    for (const c of l.cols) {
+      const pats = allowedPatterns(l.type, l.height);
+      if (!pats.some(p => p.join() === c.pattern.join())) c.pattern = pats[0].slice();
+    }
+  });
+  const top = st.layers[st.layers.length - 1];
+  if (st.roof === "heavy" && !["L", "XL"].includes(baseWidth(st))) st.roof = "grid";
+  if (st.depth < 6) st.mods.baseSplit = false;
+  return top;
+}
+
+// ---------- Lista części ----------
+// Etykiety i uwagi to polskie szablony tłumaczone tutaj: add(grupa, "{fam}{d} pudełko {h}F", rx, ilość, { v: {fam, d, h}, note }).
+// Grupa zostaje kluczem wewnętrznym (GROUP_ORDER) i jest tłumaczona dopiero przy wyświetlaniu. opts.raw = etykieta bez tłumaczenia.
+class Bom {
+  constructor() { this.parts = new Map(); this.hw = new Map(); }
+  add(group, label, rx, qty, opts = {}) {
+    if (!qty) return;
+    label = opts.raw ? label : tr(label, opts.v);
+    const note = opts.note && tr(opts.note, opts.v);
+    let files = findAll(rx);
+    if (!opts.all) files = files.slice(0, 1);
+    if (!files.length) files = ["?" + label];
+    for (const f of files) {
+      const e = this.parts.get(f) || { file: f, missing: f.startsWith("?"), qty: 0, groups: new Set(), labels: new Set(), notes: new Set() };
+      e.qty += qty; e.groups.add(group); e.labels.add(label);
+      if (note) e.notes.add(note);
+      this.parts.set(f, e);
+    }
+  }
+  hwAdd(name, qty, note, v) {
+    if (!qty) return;
+    name = tr(name, v);
+    const e = this.hw.get(name) || { name, qty: 0, notes: new Set() };
+    e.qty += qty; if (note) e.notes.add(tr(note, v));
+    this.hw.set(name, e);
+  }
+}
+
+const HW = {
+  m4_10: "Śruba M4 × 10 mm", m4_14: "Śruba M4 × 14 mm", m4_20: "Śruba M4 × 20 mm", m4_25: "Śruba M4 × 25 mm",
+  m4_40: "Śruba M4 × 40 mm", m4_60: "Śruba M4 × 60 mm", m4_long: "Śruba M4 × 60–100 mm",
+  m6_30: "Śruba M6 × 30 mm (płaski łeb)", m6_35: "Śruba M6 × 35 mm (łeb sześciokątny)", m6_50: "Śruba M6 × 50 mm", m6_90: "Śruba M6 × 90 mm",
+  insert: "Wkładka gwintowana M6 × 8 × 8 (heat insert)", bearing: "Łożysko 6205ZZ (25 × 52 × 15 mm)", scsaw: "Pierścień zaciskowy SCSAW 16 (16 × 35 × 10 mm)"
+};
+
+function addDrawer(b, m, fam, d, h, multiBox, where) {
+  const w = fam.toLowerCase(), G = "Szuflady", v = { fam, d, h };
+  const PODPORY = "drukować z podporami", DWIE = "plik = 2 szt.";
+  if (fam === "XL") b.add(G, "XL{d} pudełko", R`^01\. drawers/[^/]+/xl${d}/boxes/[^/]+\.stl$`, m, { all: true, v });
+  else b.add(G, "{fam}{d} pudełko {h}F", R`^01\. drawers/[^/]+/${w}${d}/boxes/${w}${d} box ${h}f\.stl$`, m, { v });
+  if (fam === "XL") b.add(G, "XL front 1F", R`^01\. drawers/05\. xl families/xl facade 1f\.stl$`, m);
+  else b.add(G, "{fam} front {h}F", R`^01\. drawers/[^/]+/facades/${w}${h}f \(turn on supports\)\.stl$`, m, { note: PODPORY, v });
+  // Prowadnice i ślizgi – dwie wersje biblioteki USSA:
+  //  stara: „x3 Runner Guides.stl”, „XL3 Runner Guides.stl” – 2 sztuki w pliku → 1 plik na szufladę,
+  //  nowa (X 2026): „x3 Runner Guide.stl”, „XL Runners/x3 Runner Guide XL.stl” – 1 sztuka w pliku → 2 pliki na szufladę.
+  const run = fam === "XL" ? "xl" + d : "x" + d;
+  const runner = kind => {  // -> [wzorzec, ilość, opcje] dla wersji biblioteki, która jest na dysku
+    const nowa = fam === "XL" ? R`/runners/xl runners/x${d} runner ${kind} xl\.stl$` : R`/runners/x${d} runner ${kind}\.stl$`;
+    return findAll(nowa).length ? [nowa, 2 * m, { v: { run } }] : [R`/runners/${run} runner ${kind}s\.stl$`, m, { note: DWIE, v: { run } }];
+  };
+  b.add(G, "prowadnice {run}", ...runner("guide"));
+  b.add(G, "ślizgi {run}", ...runner("slide"));
+  b.add(G, "blokada prowadnic", R`/runners/runner stopper\.stl$`, 2 * m);
+  if (state.rails === "always" || (state.rails === "auto" && multiBox))
+    b.add(G, "listwy zębate {fam}", R`/geared rails/${w} rails\.stl$`, m, { note: DWIE, v });
+  b.add(G, "sprężyny", R`^01\. drawers/07\. universal/springs\.stl$`, m, { note: DWIE });
+  if (state.key === "hidden") {
+    b.add(G, "ukryty kluczyk", R`^01\. drawers/07\. universal/hidden key \(turn on supports\)\.stl$`, m, { note: PODPORY });
+    b.add(G, "ukryty kluczyk cz. 2", R`^01\. drawers/07\. universal/hidden key part 2 \(turn on supports\)\.stl$`, m, { note: PODPORY });
+  } else {
+    b.add(G, "kluczyk", R`^01\. drawers/07\. universal/key \(turn on supports\)\.stl$`, m, { note: PODPORY });
+    b.add(G, "nakładka kluczyka", R`^01\. drawers/07\. universal/key cap\.stl$`, m);
+  }
+  b.add(G, "zaślepka frontu", R`^01\. drawers/07\. universal/facade cap\.stl$`, m);
+  b.add(G, "etykieta", R`^01\. drawers/07\. universal/label\.stl$`, m);
+  const ins = where.insert;
+  if (ins !== "none") {
+    const base = R`^01\. drawers/[^/]+/${w}${d}/gridfinity baseplate/${w}${d} baseplate( part \d)?\.stl$`;
+    let rx = base;
+    if (ins === "grid2") rx = R`^01\. drawers/[^/]+/${w}${d}/gridfinity baseplate/${w}${d} (baseplate_with 2 handles|gridfinity baseplate 2_handles)\.stl$`;
+    if (ins === "grid1") rx = R`^01\. drawers/[^/]+/${w}${d}/gridfinity baseplate/${w}${d} baseplate_with 1 handle\.stl$`;
+    if (rx !== base && !findAll(rx).length) {
+      b.add("Wkłady", "{fam}{d} baseplate gridfinity", base, m, { all: true, v, note: "brak wersji z uchwytami dla tego rozmiaru – użyto zwykłej" });
+    } else b.add("Wkłady", "{fam}{d} baseplate gridfinity", rx, m, { all: true, v });
+  }
+  b.hwAdd(HW.m4_14, (h === 1 ? 4 : 6) * m, "front szuflady");
+}
+
+function addSustainer(b, m, fam, d, h, col) {
+  const w = fam.toLowerCase(), G = "Skrzynki", v = { fam, d, h, int: col.sInt };
+  if (fam === "S" || fam === "M")
+    b.add(G, "{fam}{d} skrzynka {h}F", R`^02\. sustainers/[^/]+/${w}${d}/modules/${w}${d} ${h}f module\.stl$`, m, { v });
+  else
+    b.add(G, "{fam}{d} skrzynka {h}F {int}", R`^02\. sustainers/[^/]+/${w}${d}/modules/${w}${d} ${h}f ${col.sInt} module\.stl$`, m, { v });
+  if (d >= 6 && col.splitLid) {
+    b.add(G, "{fam}{d} wieko (2 części)", R`^02\. sustainers/[^/]+/${w}${d}/roofs?/${w}${d} roof part \d\.stl$`, m, { all: true, v });
+    b.add(G, "łącznik dzielonego wieka", R`^02\. sustainers/[^/]+/${w}${d}/roofs?/connector for split roof\.stl$`, m, { note: "ilość do weryfikacji" });
+  } else b.add(G, "{fam}{d} wieko", R`^02\. sustainers/[^/]+/${w}${d}/roofs?/${w}${d} roof( whole)?\.stl$`, m, { v });
+  if (fam === "XL") b.add(G, "XL front 1F", R`^02\. sustainers/04\. xl families/xl1f facade\.stl$`, m);
+  else b.add(G, "{fam} front {h}F", R`^02\. sustainers/[^/]+/facades/${w}${h}f facade\.stl$`, m, { v });
+  const U = "^02\\. sustainers/05\\. universal/";
+  const hinge = fam === "S" || fam === "M" ? (h === 1 ? "s-m 1f hinge" : "s-m 2-4f hinge") : (h === 1 ? "l-xl 1f hinge" : "l 2-4f hinge");
+  b.add(G, "zawias dolny", new RegExp(U + "hinges/" + hinge + "\\.stl$"), m, { note: "plik = 2 szt." });
+  const top = fam === "S" ? "s hinge top" : fam === "M" ? "m hinge top" : "l-xl hinge top";
+  b.add(G, "zawias górny", new RegExp(U + "hinges/" + top + "\\.stl$"), 2 * m);
+  b.add(G, "zamek – uchwyt", new RegExp(U + "locks/lock holder\\.stl$"), 2 * m);
+  b.add(G, "zamek – część wewn.", new RegExp(U + "locks/lock inner part\\.stl$"), 2 * m);
+  b.add(G, "zamek – część zewn.", new RegExp(U + "locks/lock outer part " + (h === 1 ? "1f" : "2-4f") + "\\.stl$"), 2 * m);
+  b.add(G, "piny zamka", new RegExp(U + "locks/1 set of pins for 1 lock\\.stl$"), 2 * m, { note: "plik = komplet na 1 zamek" });
+  b.add(G, "pręty zawiasów", new RegExp(U + "rods/" + (fam === "S" || fam === "M" ? "s-m" : "l-xl") + " rods\\.stl$"), m, { note: "plik = 2 szt." });
+  b.add(G, "etykieta skrzynki", new RegExp(U + "label for sustainers\\.stl$"), m);
+  if (col.grid) b.add("Wkłady", "{fam}{d} baseplate gridfinity (skrzynka)", R`^02\. sustainers/05\. universal/baseplates/[^/]+/${w}${d}( part \d)?( gridfinity)? baseplate\.stl$`, m, { all: true, v });
+  // przegródki
+  const D = "Przegródki", n = col.div;
+  if (fam === "S" || fam === "M") b.add(D, "{fam} przegródka {h}F", new RegExp(U + `dividers/${w} dividers/${w}${h}f divider\\.stl$`), n.n * m, { v });
+  if (fam === "L") {
+    b.add(D, "L przegródka szer. {h}F", new RegExp(U + `dividers/l width dividers/l-${h}f width divider\\.stl$`), n.w * m, { v });
+    b.add(D, "L{d} przegródka głęb. {h}F", new RegExp(U + `dividers/l depth dividers/l${d}-${h}f depth divider\\.stl$`), n.d * m, { v });
+    b.add(D, "L przegródka uszczelniająca {h}F", new RegExp(U + `dividers/l seal dividers/l-${h}f seal divider\\.stl$`), n.s * m, { v });
+  }
+  if (fam === "XL") {
+    b.add(D, "XL przegródka szer.", new RegExp(U + "dividers/xl width divider\\.stl$"), n.w * m);
+    b.add(D, "XL{d} przegródka głęb.", new RegExp(U + `dividers/xl depth dividers/xl${d} depth divider\\.stl$`), n.d * m, { v });
+    b.add(D, "XL przegródka uszcz. (środek)", new RegExp(U + "dividers/xl seal divider \\(center\\)\\.stl$"), n.sc * m);
+    b.add(D, "XL przegródka uszcz. (boki)", new RegExp(U + "dividers/xl seal divider \\(sides\\)\\.stl$"), n.ss * m);
+  }
+  b.hwAdd(HW.m4_10, 8 * m, "zawiasy dolne");
+  b.hwAdd(HW.m4_14, 16 * m, "zawiasy górne, zamki");
+  b.hwAdd(HW.m4_20, 7 * m, "front skrzynki");
+}
+
+// Dzieli wysokość warstwy na dostępne elementy (np. 4F → 2× 2F, XL 2F → 2× 1F)
+function boardsFor(h, exists) {
+  if (exists(h)) return [h];
+  if (h === 4 && exists(2)) return [2, 2];
+  return Array(h).fill(1);
+}
+
+function addStack(b, st) {
+  const m = st.qty, d = st.depth, W = baseWidth(st), w = W.toLowerCase(), WERYF = "ilość do weryfikacji";
+  for (const l of st.layers) {
+    const fams = FAMILIES[l.layout], v = { d, h: l.height };
+    if (l.type === "D") {
+      const G = "Szuflady";
+      if (l.layout === "L2") {
+        b.add(G, "L{d}² moduł {h}F", R`^01\. drawers/[^/]+/l${d}²/l${d}² module ${l.height}f\.stl$`, m, { v });
+        b.add(G, "akcesoria L² x{d} (1st)", R`/l² accessories/x${d} accessory 1st\.stl$`, m, { note: WERYF, v });
+        b.add(G, "akcesoria L² x{d} (2nd)", R`/l² accessories/x${d} accessory 2nd\.stl$`, m, { note: WERYF, v });
+        b.add(G, "zatrzask", R`^01\. drawers/07\. universal/latch\.stl$`, m);
+      } else if (l.layout === "XL2") {
+        b.add(G, "XL{d}² moduł 1F", R`^01\. drawers/[^/]+/xl${d}²/xl${d}² module 1f\.stl$`, m, { v });
+        b.add(G, "zatrzask", R`^01\. drawers/07\. universal/latch\.stl$`, m);
+      } else for (const fam of fams) {
+        const f = fam.toLowerCase();
+        b.add(G, "{fam}{d} moduł {h}F", R`^01\. drawers/[^/]+/${f}${d}/modules/${f}${d} module ${l.height}f\.stl$`, m, { v: { ...v, fam } });
+        b.add(G, "zatrzask", R`^01\. drawers/07\. universal/latch\.stl$`, m);
+      }
+      l.cols.forEach((c, i) => c.pattern.forEach(h => addDrawer(b, m, fams[i], d, h, c.pattern.length > 1, c)));
+    } else {
+      l.cols.forEach((c, i) => addSustainer(b, m, fams[i], d, l.height, c));
+    }
+  }
+  // dach
+  const top = st.layers[st.layers.length - 1];
+  if (top && top.type === "D" && st.roof !== "none") {
+    const G = "Dachy";
+    // Heavyweight XL: nowa biblioteka ma wersję „Cut” 337 × 320 mm (pełna ma 366 × 348 mm i nie mieści się na stołach ~350 × 320)
+    const cut = st.roof === "heavy" && W === "XL" ? R`^01\. drawers/[^/]+/xl${d}/roofs/xl${d} heavyweight roof cut\.stl$` : null;
+    if (cut && findAll(cut).length) b.add(G, "{W}{d} dach {roof}", cut, m, { note: "wersja Cut 337 × 320 mm – mieści się na stole ok. 350 × 320 mm", v: { W, d, roof: tr(ROOFS[st.roof]) } });
+    else b.add(G, "{W}{d} dach {roof}", R`^01\. drawers/[^/]+/${w}${d}/roofs/${w}${d} ${ROOF_FILE[st.roof]} roof\.stl$`, m, { v: { W, d, roof: tr(ROOFS[st.roof]) } });
+    if (st.roof === "heavy") {
+      b.add(G, "uchwyt dachu heavyweight", R`^01\. drawers/07\. universal/heawyweight roof handle\.stl$`, m, { note: WERYF });
+      b.add(G, "wkładka dachu heavyweight", R`^01\. drawers/07\. universal/heawyweight roof insert\.stl$`, m, { note: WERYF });
+    }
+    if (st.roof === "under") b.hwAdd("Wkręty do blatu", m, "ilość wg otworów w dachu – sprawdź");
+    if (st.topHandle) {
+      b.add(G, "uchwyt górny", R`^01\. drawers/07\. universal/top handle \(turn on supports\)\.stl$`, m, { note: "drukować z podporami" });
+      b.hwAdd(HW.m6_50, 2 * m, "uchwyt górny");
+    }
+  }
+  // modyfikacje
+  const md = st.mods, G = "Modyfikacje", MOD = "^03\\. modifications/", vw = { W, d };
+  if (md.base) {
+    if (md.baseSplit) {
+      b.add(G, "{W}{d} podstawa (2 części)", new RegExp(MOD + `base/${w}/${w}${d} base part \\d\\.stl$`), m, { all: true, v: vw });
+      b.add(G, "łącznik podstawy", new RegExp(MOD + "base/base connector\\.stl$"), m, { note: WERYF });
+    } else b.add(G, "{W}{d} podstawa", new RegExp(MOD + `base/${w}/${w}${d} base( whole)?\\.stl$`), m, { v: vw });
+    b.hwAdd("Pręt gwintowany M16 × {mm} mm", m, "oś podstawy {W}", { mm: ROD_MM[W], W });
+  }
+  if (md.wheels) {
+    for (const [n, f] of [["koło – tarcza", "disk"], ["koło – pokrywa", "cover"], ["tuleja", "bushing"]])
+      b.add(G, n, new RegExp(MOD + `wheels/${f}\\.stl$`), 2 * m);
+    b.add(G, "opona (TPU)", new RegExp(MOD + "wheels/tyre \\(tpu\\)\\.stl$"), 2 * m, { note: "filament TPU" });
+    b.add(G, "przyrząd do tulei (jig)", new RegExp(MOD + "wheels/jig\\.stl$"), 1, { note: "narzędzie – wystarczy 1 szt." });
+    b.hwAdd(HW.m4_25, 12 * m, "koła (6 na koło)");
+    b.hwAdd(HW.bearing, 2 * m, "koła");
+    b.hwAdd(HW.scsaw, 2 * m, "koła");
+  }
+  if (md.feet) {
+    b.add(G, "{W} stopka", new RegExp(MOD + `feet/${w} feet\\.stl$`), m, { v: vw });
+    b.hwAdd(HW.m6_90, 2 * m, "stopka");
+  }
+  if (md.backbone !== "none" || md.pegboard !== "none" || md.wall) {
+    const rxBack = h => new RegExp(MOD + `backbone/${w}${h}f backbone\\.stl$`);
+    const rxUni = h => new RegExp(MOD + `backbone/universal ${h}f backbone\\.stl$`);
+    const pegDir = md.pegboard === "ikea" ? "ikea skadis pegboard" : "ussa pegboard";
+    const rxPeg = h => new RegExp(MOD + `pegboard attachment/${pegDir}/${w}${h}f\\.stl$`);
+    const rxWall = h => new RegExp(MOD + `wall mounts/${w}${h}f wall mount\\.stl$`);
+    const has = rx => h => findAll(rx(h)).length > 0;
+    const split = (hs, h0, v) => hs.length > 1 ? { note: "warstwa {h0}F złożona z {n}× {h1}F – do weryfikacji", v: { ...v, h0, n: hs.length, h1: hs[0] } } : { v };
+    for (const l of st.layers) {
+      const h0 = l.height;
+      if (md.backbone === "ded") {
+        const hs = boardsFor(h0, has(rxBack));
+        for (const h of hs) b.add(G, "kręgosłup {W}{h}F", rxBack(h), m, split(hs, h0, { W, h }));
+        b.hwAdd(HW.m4_long, 4 * hs.length * m, "kręgosłup (długość wg wysokości)");
+      }
+      if (md.backbone === "uni") {
+        const hs = boardsFor(h0, has(rxUni));
+        for (const h of hs) b.add(G, "kręgosłup uniwersalny {h}F", rxUni(h), 2 * m, { note: "2 szt. na warstwę (lewa + prawa) – do weryfikacji", v: { h } });
+        b.hwAdd(HW.m4_long, 4 * hs.length * m, "kręgosłup (długość wg wysokości)");
+      }
+      if (md.pegboard !== "none") {
+        const hs = boardsFor(h0, has(rxPeg)), kind = md.pegboard === "ikea" ? "IKEA Skådis" : "USSA";
+        for (const h of hs) b.add(G, "pegboard {kind} {W}{h}F", rxPeg(h), m, split(hs, h0, { kind, W, h }));
+        b.hwAdd(HW.m4_40, 4 * hs.length * m, "pegboard");
+      }
+      if (md.wall) {
+        const hs = boardsFor(h0, has(rxWall));
+        for (const h of hs) b.add(G, "uchwyt ścienny {W}{h}F", rxWall(h), m, split(hs, h0, { W, h }));
+        b.add(G, "uchwyt ścienny – część 2", new RegExp(MOD + "wall mounts/wall mount second part\\.stl$"), hs.length * m, { note: WERYF });
+        b.hwAdd("Kołki/wkręty do ściany", m, "ilość i typ wg ściany");
+      }
+    }
+  }
+  if (md.handleStatic) {
+    b.add(G, "{W} uchwyt stały", new RegExp(MOD + `stationary handle/${w} stationary handle\\.stl$`), m, { v: vw });
+    b.hwAdd(HW.m4_60, 8 * m, "uchwyt stały");
+  }
+  if (md.handlePull) {
+    b.add(G, "{W} uchwyt wysuwany", new RegExp(MOD + `pull-out handle/${w} pull-out handle\\.stl$`), m, { v: vw });
+    if (md.backbone === "uni") b.add(G, "blokada uchwytu (uniwersalna)", new RegExp(MOD + "backbone/universal pull-out handle lock\\.stl$"), 2 * m, { note: WERYF });
+    else {
+      b.add(G, "{W} blokada uchwytu", new RegExp(MOD + `backbone/${w} pull-out handle lock\\.stl$`), m, { v: vw });
+      if (W === "S") b.add(G, "S blokada uchwytu cz. 2", new RegExp(MOD + "backbone/s pull-out handle lock part 2\\.stl$"), m);
+    }
+    b.add(G, "pokrętło blokady cz. 1", new RegExp(MOD + "backbone/handle lock knob part 1\\.stl$"), 2 * m);
+    b.add(G, "pokrętło blokady cz. 2", new RegExp(MOD + "backbone/handle lock knob part 2\\.stl$"), 2 * m);
+    b.hwAdd(HW.m6_30, 4 * m, "uchwyt wysuwany");
+    b.hwAdd(HW.m6_35, 2 * m, "uchwyt wysuwany");
+    b.hwAdd(HW.insert, 2 * m, "uchwyt wysuwany");
+    b.hwAdd("Pręt gwintowany M16 (na wysokość wieży)", 2 * m, "uchwyt wysuwany – dociąć, nawiercić i nagwintować M6");
+  }
+}
+
+function buildBom() {
+  const b = new Bom();
+  state.stacks.forEach(st => { normalizeStack(st); addStack(b, st); });
+  for (const e of state.extras) {
+    const n = norm(e.file);
+    b.add("Dodatkowe", e.file.split("/").pop(), new RegExp("^" + n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"), e.qty, { raw: true });
+  }
+  return b;
+}
+
+// ---------- Widok: lista zestawów ----------
+const $ = id => document.getElementById(id);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (k === "checked" || k === "disabled" || k === "selected" || k === "hidden") n[k] = v;
+    else n.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) n.append(k);
+  return n;
+};
+const sel = (value, options, onchange) =>
+  el("select", { onchange: e => onchange(e.target.value) }, options.map(([v, t]) => el("option", { value: v, selected: String(v) === String(value) }, t)));
+const num = (value, onchange, min = 0) => el("input", { type: "number", min, value, onchange: e => onchange(Math.max(min, parseInt(e.target.value) || 0)) });
+const chk = (checked, label, onchange, disabled = false) =>
+  el("label", {}, el("input", { type: "checkbox", checked, disabled, onchange: e => onchange(e.target.checked) }), " " + label);
+
+function update() { state.stacks.forEach(normalizeStack); save(); render(); }
+
+function renderStacks() {
+  const ul = $("stackList"); ul.replaceChildren();
+  state.stacks.forEach((st, i) => {
+    const desc = `${baseWidth(st)}${st.depth} · ${layersText(st.layers.length)}`;
+    ul.append(el("li", { class: i === state.current ? "active" : "", onclick: () => { state.current = i; update(); } },
+      el("span", {}, st.name, el("div", { class: "meta" }, desc)), el("span", { class: "meta" }, "×" + st.qty)));
+  });
+}
+
+// „1 warstwa / 2 warstwy / 5 warstw” – odmiana polska, w innych językach wg słownika
+function layersText(n) {
+  if (LANG !== "pl") return tr(n === 1 ? "{n} warstwa" : "{n} warstw", { n });
+  const f = n === 1 ? "warstwa" : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? "warstwy" : "warstw";
+  return `${n} ${f}`;
+}
+
+// ---------- Widok: edytor zestawu ----------
+function patternLabel(p) { return p.map(h => h + "F").join(" / "); }
+
+function renderPreview(st) {
+  const scale = 0.62, unit = 22;
+  const box = el("div", { class: "preview" });
+  if (st.mods.base) box.append(el("div", { class: "pv-base", style: `width:${WIDTH_MM[baseWidth(st)] * scale}px` }));
+  const GAP = 4;
+  for (const l of st.layers) {
+    const row = el("div", { class: "pv-layer" });
+    const fams = FAMILIES[l.layout], kind = l.type === "D" ? "d" : "s";
+    const rowW = WIDTH_MM[LAYOUT_WIDTH[l.layout]] * scale;
+    // osobne moduły obok siebie (2× S, S + M) mają własne obudowy; L², XL² i pełne moduły – jedną wspólną
+    const separate = l.layout === "SS" || l.layout === "SM";
+    const housings = separate ? fams.map((_, i) => [i]) : [fams.map((_, i) => i)];
+    const famsMM = fams.reduce((n, f) => n + WIDTH_MM[f], 0);
+    for (const idx of housings) {
+      const mm = idx.reduce((n, i) => n + WIDTH_MM[fams[i]], 0);
+      const w = separate ? (rowW - GAP * (housings.length - 1)) * mm / famsMM : rowW;
+      const tag = l.layout === "L2" ? `L${st.depth}²` : l.layout === "XL2" ? `XL${st.depth}²` : fams[idx[0]] + st.depth;
+      const mod = el("div", { class: "pv-mod " + kind, style: `width:${w}px`, title: `${tag} · ${l.height}F · ${l.type === "D" ? tr("szuflady") : tr("skrzynka")}` },
+        el("span", { class: "pv-tag" }, `${tag} ${l.height}F`));
+      for (const i of idx) {
+        const c = l.cols[i], colEl = el("div", { class: "pv-col", style: `flex:${WIDTH_MM[fams[i]]} 1 0` });
+        for (const h of (l.type === "D" ? c.pattern : [l.height]))
+          colEl.append(el("div", { class: "pv-box " + kind, style: `height:${h * unit}px` }, fams[i] + st.depth + "·" + h + "F"));
+        mod.append(colEl);
+      }
+      row.append(mod);
+    }
+    box.append(row);
+  }
+  const top = st.layers[st.layers.length - 1];
+  if (top && top.type === "D" && st.roof !== "none") box.append(el("div", { class: "pv-roof", style: `width:${WIDTH_MM[baseWidth(st)] * scale}px` }));
+  // pełny widok 3D w osobnym oknie (wizualizacja.js)
+  if (typeof openViz === "function") box.append(el("button", { class: "small viz-open", onclick: () => openViz() }, tr("Wizualizacja 3D")));
+  return box;
+}
+
+function renderColumn(st, l, c, fam) {
+  const box = el("div", { class: "col" }, el("div", { class: "fam" }, fam + st.depth + " · " + (l.type === "D" ? tr("szuflady") : tr("skrzynka"))));
+  if (l.type === "D") {
+    const pats = allowedPatterns("D", l.height);
+    if (pats.length > 1)
+      box.append(el("div", { class: "row" }, tr("Fronty:") + " ", sel(c.pattern.join(","), pats.map(p => [p.join(","), patternLabel(p)]), v => { c.pattern = v.split(",").map(Number); update(); })));
+    const hasOne = findAll(R`/${fam.toLowerCase()}${st.depth}/gridfinity baseplate/[^/]*with 1 handle\.stl$`).length > 0;
+    const opts = [["none", tr("puste")], ["grid", "gridfinity baseplate"], ["grid2", tr("gridfinity z 2 uchwytami")]];
+    if (hasOne) opts.push(["grid1", tr("gridfinity z 1 uchwytem")]);
+    box.append(el("div", { class: "row" }, tr("Wkład:") + " ", sel(c.insert, opts, v => { c.insert = v; update(); })));
+  } else {
+    if (fam === "L" || fam === "XL")
+      box.append(el("div", { class: "row" }, tr("Wnętrze:") + " ", sel(c.sInt, [["flat", tr("płaskie (Flat)")], ["dividers", tr("pod przegródki (Dividers)")], ["sealed", tr("szczelne (Sealed)")]], v => { c.sInt = v; update(); })));
+    box.append(el("div", { class: "row" }, chk(!!c.grid, tr("wkład gridfinity"), v => { c.grid = v; update(); }),
+      st.depth >= 6 ? chk(!!c.splitLid, tr("wieko w 2 częściach"), v => { c.splitLid = v; update(); }) : null));
+    const v = c.div, setv = k => n => { v[k] = n; update(); };
+    if (fam === "S" || fam === "M") box.append(el("div", { class: "row" }, tr("Przegródki:") + " ", num(v.n, setv("n"))));
+    if (fam === "L") box.append(el("div", { class: "row" }, tr("Przegr. szer.:") + " ", num(v.w, setv("w")), " " + tr("głęb.:") + " ", num(v.d, setv("d")), " " + tr("uszcz.:") + " ", num(v.s, setv("s"))));
+    if (fam === "XL") box.append(el("div", { class: "row" }, tr("Przegr. szer.:") + " ", num(v.w, setv("w")), " " + tr("głęb.:") + " ", num(v.d, setv("d"))),
+      el("div", { class: "row" }, tr("Uszcz. środek:") + " ", num(v.sc, setv("sc")), " " + tr("boki:") + " ", num(v.ss, setv("ss"))));
+  }
+  return box;
+}
+
+function renderLayer(st, l, i) {
+  const n = st.layers.length;
+  const layouts = allowedLayouts(l.type, i ? baseWidth(st) : null);
+  const head = el("div", { class: "layer-head" },
+    el("span", { class: "idx" }, i === 0 ? tr("Warstwa 1 (spód)") : tr("Warstwa {n}", { n: i + 1 })),
+    sel(l.type, [["D", tr("Szuflady")], ["S", tr("Skrzynki (Sustainers)")]], v => { l.type = v; update(); }),
+    sel(l.layout, layouts.map(x => [x, layoutLabel(x)]), v => { l.layout = v; l.cols = FAMILIES[v].map(() => newCol(l.height)); update(); }),
+    sel(l.height, allowedHeights(l.layout).map(h => [h, h + "F"]), v => { l.height = +v; l.cols.forEach(c => c.pattern = [l.height]); update(); }),
+    el("span", { class: "tools" },
+      el("button", { class: "small", title: tr("w górę"), disabled: i === n - 1, onclick: () => { [st.layers[i], st.layers[i + 1]] = [st.layers[i + 1], st.layers[i]]; update(); } }, "▲"),
+      el("button", { class: "small", title: tr("w dół"), disabled: i === 0, onclick: () => { [st.layers[i], st.layers[i - 1]] = [st.layers[i - 1], st.layers[i]]; update(); } }, "▼"),
+      el("button", { class: "small", title: tr("kopiuj warstwę"), onclick: () => { const c = JSON.parse(JSON.stringify(l)); c.id = uid++; st.layers.splice(i + 1, 0, c); update(); } }, "⧉"),
+      el("button", { class: "small", title: tr("usuń"), disabled: n === 1, onclick: () => { st.layers.splice(i, 1); update(); } }, "✕")));
+  const cols = el("div", { class: "cols" }, l.cols.map((c, k) => renderColumn(st, l, c, FAMILIES[l.layout][k])));
+  return el("div", { class: "layer" + (i === n - 1 ? " top" : "") }, head, cols);
+}
+
+function renderEditor() {
+  const st = cur(), ed = $("editor");
+  const W = baseWidth(st), top = st.layers[st.layers.length - 1];
+  ed.replaceChildren();
+  ed.append(el("div", { class: "row" },
+    el("input", { type: "text", value: st.name, onchange: e => { st.name = e.target.value || tr("Zestaw"); update(); } }),
+    el("label", {}, tr("Ilość:") + " ", num(st.qty, v => { st.qty = Math.max(1, v); update(); }, 1)),
+    el("label", {}, tr("Głębokość:") + " ", sel(st.depth, [3, 4, 5, 6, 7].map(d => [d, `${d} (${d * 42} mm)`]), v => { st.depth = +v; update(); }))));
+  ed.append(renderPreview(st));
+  ed.append(el("h3", {}, tr("Warstwy (od góry)")));
+  ed.append(el("div", { class: "row" }, el("button", { class: "primary", onclick: () => {
+    const t = top || { type: "D" };
+    st.layers.push(newLayer(t.type, allowedLayouts(t.type, baseWidth(st))[0], 1)); update();
+  } }, tr("+ Dodaj warstwę na górze"))));
+  for (let i = st.layers.length - 1; i >= 0; i--) ed.append(renderLayer(st, st.layers[i], i));
+  ed.append(el("p", { class: "hint" }, tr("Szerokość wieży wyznacza warstwa 1: L, L² i 2× S dają szerokość L, a XL, XL² i S + M – szerokość XL. Wyżej można łączyć układy tej samej szerokości. XL i XL² występują tylko w 1F.")));
+
+  ed.append(el("h3", {}, tr("Góra")));
+  if (top && top.type === "D") {
+    const roofs = Object.entries(ROOFS).filter(([k]) => k !== "heavy" || W === "L" || W === "XL").map(([k, t]) => [k, tr(t)]);
+    ed.append(el("div", { class: "row" }, tr("Dach:") + " ", sel(st.roof, roofs, v => { st.roof = v; update(); }),
+      chk(st.topHandle, tr("uchwyt górny (Top Handle)"), v => { st.topHandle = v; update(); }, st.roof === "none")));
+  } else ed.append(el("p", { class: "hint" }, tr("Górna warstwa to skrzynka – jej wieko zamyka wieżę, dach szuflad nie jest potrzebny.")));
+
+  const md = st.mods, setm = k => v => { md[k] = v; update(); };
+  ed.append(el("h3", {}, tr("Modyfikacje")));
+  ed.append(el("fieldset", {}, el("legend", {}, tr("Podstawa")),
+    el("div", { class: "row" }, chk(md.base, tr("podstawa (Base)"), setm("base")),
+      el("span", { title: tr("Podstawa głębokości 6 i 7 ma ok. 280–325 mm długości; USSA daje ją w całości (Whole) albo w 2 częściach (Part 1 + Part 2) dla mniejszych drukarek. Dostępne po zaznaczeniu podstawy przy głębokości 6 lub 7.") },
+        chk(md.baseSplit, tr("w 2 częściach"), setm("baseSplit"), !md.base || st.depth < 6)),
+      chk(md.wheels, tr("koła"), setm("wheels")), chk(md.feet, tr("stopka (Feet)"), setm("feet")))));
+  ed.append(el("fieldset", {}, el("legend", {}, tr("Tył wieży")),
+    el("div", { class: "row" }, tr("Kręgosłup:") + " ", sel(md.backbone, [["none", tr("brak")], ["ded", tr("dedykowany {W}", { W })], ["uni", tr("uniwersalny")]], setm("backbone")),
+      "Pegboard: ", sel(md.pegboard, [["none", tr("brak")], ["ikea", "IKEA Skådis"], ["ussa", "USSA"]], setm("pegboard"))),
+    el("div", { class: "row" }, chk(md.handleStatic, tr("uchwyt stały"), setm("handleStatic")),
+      chk(md.handlePull, tr("uchwyt wysuwany"), setm("handlePull")), chk(md.wall, tr("uchwyty ścienne"), setm("wall")))));
+  if (md.handlePull && md.backbone === "none") ed.append(el("p", { class: "err" }, tr("Uchwyt wysuwany montuje się na kręgosłupie – wybierz kręgosłup.")));
+}
+
+// ---------- Dodatkowe pliki ----------
+function renderExtras() {
+  const box = $("extrasList"); box.replaceChildren();
+  state.extras.forEach((e, i) => box.append(el("div", { class: "row" },
+    num(e.qty, v => { e.qty = v; update(); }, 1),
+    el("span", { title: e.file, style: "flex:1;font-size:12px" }, e.file.split("/").slice(-2).join(" / ")),
+    el("button", { class: "small", onclick: () => { state.extras.splice(i, 1); update(); } }, "✕"))));
+}
+$("extraSearch").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase().split(/\s+/).filter(Boolean), res = $("extraResults");
+  res.replaceChildren();
+  if (!q.length) { res.hidden = true; return; }
+  const hits = CATALOG.filter(f => q.every(t => f.n.includes(t))).slice(0, 60);
+  res.hidden = false;
+  if (!hits.length) res.append(el("div", {}, tr("brak wyników")));
+  for (const h of hits) res.append(el("div", {}, el("span", { title: h.p }, h.p.split("/").slice(-2).join(" / ")),
+    el("button", { class: "small", onclick: () => {
+      const ex = state.extras.find(x => x.file === h.p);
+      if (ex) ex.qty++; else state.extras.push({ file: h.p, qty: 1 });
+      update();
+    } }, "+")));
+});
+
+// ---------- Wynik ----------
+const GROUP_ORDER = ["Szuflady", "Wkłady", "Skrzynki", "Przegródki", "Dachy", "Modyfikacje", "Dodatkowe"];
+function sortedParts(b) {
+  const arr = [...b.parts.values()];
+  for (const e of arr) e.group = GROUP_ORDER.find(g => e.groups.has(g)) || [...e.groups][0];
+  return arr.sort((a, c) => GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(c.group) || a.file.localeCompare(c.file, LANG));
+}
+
+// Dokleja do pozycji szacunek (na całą ilość, z mnożnikiem czasu) i liczy sumy
+function withEstimates(parts) {
+  const tot = { sec: 0, g: 0, ussa: 0, calc: 0, geom: 0, none: 0 };
+  for (const e of parts) {
+    const est = e.missing ? null : estimate(e.file);
+    e.est = est && { sec: est.sec * state.speed, g: est.g, src: est.src };
+    if (!e.est) { tot.none += e.qty; continue; }
+    tot.sec += e.est.sec * e.qty; tot.g += e.est.g * e.qty; tot[e.est.src] += e.est.g * e.qty;
+  }
+  return tot;
+}
+
+function renderResult() {
+  const b = buildBom(), box = $("result");
+  const parts = sortedParts(b), hw = [...b.hw.values()].sort((a, c) => a.name.localeCompare(c.name, LANG));
+  const pieces = parts.reduce((n, e) => n + e.qty, 0), missing = parts.filter(e => e.missing).length;
+  const tot = withEstimates(parts);
+  const share = tot.g ? Math.round(100 * (tot.ussa + tot.calc) / tot.g) : 0;
+  $("summary").replaceChildren(
+    el("span", {}, tr("{files} różnych plików · {pieces} wydruków (plików do wrzucenia na stół) · {hw} pozycji niedrukowanych", { files: parts.length, pieces, hw: hw.length })),
+    PRINT ? el("div", { style: "margin-top:4px;font-size:15px" },
+      el("b", {}, tr("≈ {time} druku · ≈ {mass} filamentu · ≈ {cost} zł", { time: fmtTime(tot.sec), mass: fmtG(tot.g),
+        cost: (tot.g / 1000 * state.price).toLocaleString(locale(), { maximumFractionDigits: 0 }) })),
+      el("div", { class: "hint" }, tr("{share}% masy z arkusza USSA (Bambu H2S, basic), reszta oszacowana z geometrii STL. Czas × {speed}. Bez podpór i wymian płyty.", { share, speed: state.speed })))
+      : el("div", { class: "hint" }, tr("Brak pliku dane_druku.js – uruchom „python kalibruj.py”, aby zobaczyć szacunek druku.")),
+    ...(missing ? [el("div", { class: "err" }, tr("{n} pozycji bez pasującego pliku – zaznaczone na czerwono.", { n: missing }))] : []));
+  document.querySelectorAll(".tabs button[data-tab]").forEach(btn => btn.classList.toggle("on", btn.dataset.tab === state.tab));
+  if (state.tab === "print") {
+    const tb = el("tbody");
+    let g = null;
+    for (const e of parts) {
+      if (e.group !== g) {
+        g = e.group;
+        const gs = parts.filter(x => x.group === g && x.est).reduce((a, x) => [a[0] + x.est.sec * x.qty, a[1] + x.est.g * x.qty], [0, 0]);
+        tb.append(el("tr", { class: "grp" }, el("td", { colspan: 3 }, tr(g)), el("td", { class: "q" }, PRINT ? `${fmtTime(gs[0])} · ${fmtG(gs[1])}` : "")));
+      }
+      const name = e.missing ? e.file.slice(1) : e.file.split("/").pop();
+      const path = e.missing ? tr("nie znaleziono pliku") : e.file.split("/").slice(0, -1).join(" / ");
+      tb.append(el("tr", { class: e.missing ? "missing" : "" },
+        el("td", { class: "q" }, "×" + e.qty),
+        el("td", {}, e.missing ? name : el("a", { href: fileUrl(e.file), target: "_blank" }, name),
+          el("div", { class: "path" }, path)),
+        el("td", {}, el("div", { class: "used" }, [...e.labels].join(", ")), [...e.notes].map(n => el("div", { class: "note" }, n))),
+        el("td", { class: "est " + (e.est ? e.est.src : ""), title: e.est ? tr("1 szt.: {time}, {g} g – {src}", { time: fmtTime(e.est.sec), g: Math.round(e.est.g), src: tr(SRC_LABEL[e.est.src]) }) : "" },
+          e.est ? [el("div", {}, fmtTime(e.est.sec * e.qty)), el("div", {}, fmtG(e.est.g * e.qty))] : "–")));
+    }
+    box.replaceChildren(el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, tr("Ilość")), el("th", {}, tr("Plik")), el("th", {}, tr("Do czego / uwagi")),
+      el("th", { class: "q", title: tr("● z arkusza USSA · ○ szacunek z geometrii") }, tr("Czas · filament")))), tb),
+      el("p", { class: "hint" }, tr("Czas i filament dotyczą całej ilości w wierszu; najedź na wartość, aby zobaczyć dane dla 1 sztuki.") + " ",
+        el("span", { class: "est ussa" }, tr("z arkusza USSA")), " · ", el("span", { class: "est geom" }, tr("szacunek z geometrii STL")), "."));
+  } else if (state.tab === "job") {
+    renderJob(box, parts);
+  } else {
+    const tb = el("tbody");
+    for (const e of hw) tb.append(el("tr", {}, el("td", { class: "q" }, "×" + e.qty), el("td", {}, e.name), el("td", { class: "used" }, [...e.notes].join(", "))));
+    box.replaceChildren(el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, tr("Ilość")), el("th", {}, tr("Element")), el("th", {}, tr("Do czego")))), tb),
+      el("p", { class: "hint" }, tr("Ilości wg tabeli „Hardware List” z instrukcji. Opony drukuje się z TPU. Pręty M16 do uchwytu wysuwanego trzeba dociąć do wysokości wieży.")));
+  }
+}
+
+// ---------- CSV ----------
+const csvSep = () => (LANG === "pl" ? ";" : ",");
+function csvCell(v) { const s = String(v); return s.includes(csvSep()) || /["\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function csvText() {
+  const b = buildBom(), parts = sortedParts(b), tot = withEstimates(parts);
+  const dec = (v, n = 1) => v.toLocaleString(locale(), { maximumFractionDigits: n, useGrouping: false });
+  const rows = [["Sekcja", "Grupa", "Ilość", "Plik", "Folder", "Do czego", "Uwagi", "Czas 1 szt. [min]", "Filament 1 szt. [g]", "Czas razem [h]", "Filament razem [g]", "Źródło szacunku"].map(h => tr(h))];
+  for (const e of parts) {
+    const name = e.missing ? e.file.slice(1) : e.file.split("/").pop();
+    const dir = e.missing ? tr("BRAK PLIKU") : e.file.split("/").slice(0, -1).join("/");
+    const est = e.est ? [dec(e.est.sec / 60, 0), dec(e.est.g), dec(e.est.sec * e.qty / 3600, 2), dec(e.est.g * e.qty), tr(SRC_LABEL[e.est.src])] : ["", "", "", "", ""];
+    rows.push([tr("Do druku"), tr(e.group), e.qty, name, dir, [...e.labels].join(", "), [...e.notes].join(", "), ...est]);
+  }
+  rows.push([tr("Do druku"), tr("RAZEM"), parts.reduce((n, e) => n + e.qty, 0), "", "", "",
+    tr("mnożnik czasu {speed}; ok. {cost} zł przy {price} zł/kg", { speed: state.speed, cost: dec(tot.g / 1000 * state.price, 0), price: state.price }), "", "", dec(tot.sec / 3600, 1), dec(tot.g, 0), ""]);
+  for (const e of [...b.hw.values()].sort((a, c) => a.name.localeCompare(c.name, LANG)))
+    rows.push([tr("Niedrukowane"), "", e.qty, e.name, "", [...e.notes].join(", "), ""]);
+  rows.push([]);
+  rows.push([tr("Zestawy")]);
+  for (const st of state.stacks) rows.push(["", st.name, st.qty, `${baseWidth(st)}${st.depth}`, st.layers.map(l => layoutLabel(l.layout) + " " + l.height + "F " + (l.type === "D" ? tr("szuflady") : tr("skrzynki"))).join(" | ")]);
+  return rows.map(r => r.map(csvCell).join(csvSep())).join("\r\n");
+}
+function exportCsv() {
+  download(new Blob(["﻿" + csvText()], { type: "text/csv;charset=utf-8" }), tr("vault-lista.csv"));
+}
+
+// ---------- Przygotowanie wydruku (kopiowanie STL + płyty 3MF przez serwer.py) ----------
+const PRINTERS = window.VAULT_PRINTERS || {};
+// Część obszaru dyszy symetryczna względem środka stołu – Bambu Studio centruje import na środku stołu (jak w druk.py)
+const symArea = p => {
+  const cx = p.bed[0] / 2, cy = p.bed[1] / 2, [x0, y0, x1, y1] = p.area;
+  const hw = Math.min(cx - x0, x1 - cx), hh = Math.min(cy - y0, y1 - cy);
+  return [cx - hw, cy - hh, cx + hw, cy + hh];
+};
+const printerLabel = p => {
+  const [x0, y0, x1, y1] = symArea(p), r = n => +n.toFixed(1);
+  return `${p.name.includes(" – ") ? tr(p.name) : p.name} (${r(x1 - x0)}×${r(y1 - y0)}×${p.h})`;
+};
+const defaultJobName = () => (state.stacks.length === 1 ? state.stacks[0].name : state.stacks.map(s => s.name).join(" + ")).slice(0, 60);
+const SERVER = { checked: false, ok: false, status: null, timer: null };
+
+async function api(path, body) {
+  // X-Lang: serwer odpowiada (błędy, postęp, ostrzeżenia, plyty.txt) w języku konfiguratora
+  const headers = { "X-Lang": LANG };
+  const r = await fetch(path, body ? { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) } : { headers });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+async function checkServer() {
+  if (location.protocol === "file:") { SERVER.checked = true; return; }
+  try {
+    const ping = await api("/api/ping");
+    SERVER.ok = true;
+    // serwer uruchomiony ze starszą wersją programu ma inne definicje drukarek albo ustawienia bez „zeskanowano” – trzeba go zrestartować
+    SERVER.stale = JSON.stringify(ping.printers) !== JSON.stringify(PRINTERS) || !ping.settings || !("zeskanowano" in ping.settings);
+    SERVER.settings = ping.settings || null;
+    SERVER.wersja = ping.wersja || "";
+    SERVER.wybor = !!ping.wybor;  // serwer umie otworzyć systemowe okno wyboru folderu
+    SERVER.status = await api("/api/druk");
+  } catch { SERVER.ok = false; }
+  SERVER.checked = true;
+  renderLibrary();
+  if (SERVER.status && SERVER.status.running) pollJob();
+}
+function jobPayload(parts) {
+  const j = state.job;
+  return {
+    name: (j.name || "").trim() || defaultJobName(),
+    items: parts.filter(e => !e.missing).map(e => ({ file: e.file, qty: e.qty, label: [...e.labels].join(", "),
+      sec: e.est ? e.est.sec : 0, g: e.est ? e.est.g : 0 })),
+    csv: csvText(),
+    opts: { copy: j.copy, make3mf: j.make3mf, printer: j.printer, bed: j.bed, gap: j.gap }
+  };
+}
+function pollJob() {
+  clearTimeout(SERVER.timer);
+  SERVER.timer = setTimeout(async () => {
+    try { SERVER.status = await api("/api/druk"); } catch (e) { SERVER.status = { error: tr("Serwer nie odpowiada:") + " " + e.message }; }
+    const st = SERVER.status || {};
+    // po skanowaniu biblioteki zmienił się katalog.js – przeładuj stronę, żeby wczytać nową listę plików
+    if (st.kind === "skan" && !st.running && st.result && SERVER.reloadAfterScan) { location.reload(); return; }
+    if (state.tab === "job") renderResult();
+    renderLibrary();
+    if (st.running) pollJob();
+  }, 700);
+}
+
+// ---------- Biblioteka plików i instrukcje ----------
+function renderLibrary() {
+  const box = $("libBox"), st = SERVER.status || {}, s = SERVER.settings;
+  const out = [el("p", { class: "hint", style: "word-break:break-all" }, ...(s ? [tr("Katalog:") + " ", el("b", {}, s.biblioteka), " · "] : []),
+    tr("{n} plików STL", { n: FILES.length }))];
+  if (SERVER.ok && s) {
+    // katalog.js powstał z innego katalogu niż ustawiony (zeskanowano zapisuje skanuj.py po udanym skanie)
+    if (!samePath(s.biblioteka, s.zeskanowano))
+      out.push(el("p", { class: "err" }, tr("Ustawiony katalog ({dir}) nie był jeszcze skanowany – kliknij „Przeskanuj”.", { dir: s.biblioteka })));
+    if (!s.ok) out.push(el("p", { class: "err" }, s.message));
+    const inp = el("input", { type: "text", value: s.biblioteka, style: "width:100%", title: tr("pełna ścieżka do katalogu z plikami VAULT (STL/PDF)") });
+    const busy = !!st.running;
+    const scan = async biblioteka => {
+      try { await api("/api/ustawienia", { biblioteka }); SERVER.reloadAfterScan = true; SERVER.status = { running: true, kind: "skan", step: "start" }; renderLibrary(); pollJob(); }
+      catch (e) { alert(e.message); }
+    };
+    out.push(inp, el("div", { class: "row", style: "margin-top:6px" },
+      el("button", { disabled: busy, onclick: () => scan(inp.value) }, samePath(inp.value, s.biblioteka) ? tr("Przeskanuj") : tr("Zmień i przeskanuj")),
+      el("button", { class: "small", onclick: () => api("/api/otworz", { co: "biblioteka" }).catch(e => alert(e.message)) }, tr("Otwórz"))));
+    if (busy && st.kind === "skan") out.push(el("p", { class: "hint" }, "⏳ ", st.step || "", el("br"), tr("Nowe pliki: ok. 2–3 min na 20 GB; znane pliki są pomijane.")));
+    if (!busy && st.kind === "skan" && st.error) out.push(el("p", { class: "err" }, tr("Błąd skanowania:") + " " + st.error));
+    out.push(el("p", { class: "hint" }, tr("Gotowe wydruki trafiają do: {dir}", { dir: s.wyjscie })));
+    if (SERVER.wersja) out.push(el("p", { class: "hint" }, tr("Wersja programu: {v}", { v: SERVER.wersja })));
+  } else if (SERVER.checked) {
+    out.push(el("p", { class: "hint" }, tr("Zmiana katalogu: uruchom.bat (panel tutaj) albo w konsoli:") + " ", el("code", {}, tr('python skanuj.py "D:\\ścieżka\\vault"'))));
+  }
+  box.replaceChildren(...out);
+  renderSetup();
+}
+
+// ---------- Pierwsze uruchomienie: folder z plikami STL ----------
+// Okno pojawia się, gdy ustawiona biblioteka nie jest poprawna albo nie była jeszcze skanowana na tym komputerze
+// (np. po instalacji z instaluj.bat). Przy złym folderze odsyła na stronę producenta.
+const USSA_URL = "https://www.ussadesign.com/pages/vault";
+const SETUP = { skip: false, path: null, msg: "" };
+function renderSetup() {
+  let box = $("setupBox");
+  const s = SERVER.settings, st = SERVER.status || {}, scanning = !!st.running && st.kind === "skan";
+  const need = SERVER.ok && s && !SERVER.stale && !SETUP.skip && (!s.ok || !samePath(s.biblioteka, s.zeskanowano) || !FILES.length);
+  if (!need && !(scanning && box)) { if (box) box.remove(); return; }
+  if (!box) { box = el("div", { id: "setupBox", class: "setup-overlay", role: "dialog" }); document.body.append(box); }
+  if (SETUP.path === null) SETUP.path = s.biblioteka;
+  const check = async () => {
+    SETUP.msg = "";
+    try {
+      await api("/api/ustawienia", { biblioteka: SETUP.path });
+      SERVER.reloadAfterScan = true; SERVER.status = { running: true, kind: "skan", step: "start" }; pollJob();
+    } catch (e) { SETUP.msg = e.message; }
+    renderSetup();
+  };
+  const pick = async () => {
+    try { const r = await api("/api/wybierz_katalog", {}); if (r.path) { SETUP.path = r.path; SETUP.msg = ""; } }
+    catch (e) { SETUP.msg = e.message; }
+    renderSetup();
+  };
+  const same = samePath(SETUP.path, s.biblioteka);
+  const err = SETUP.msg || (same && !s.ok ? s.message : "");
+  const found = same && s.ok && !samePath(s.biblioteka, s.zeskanowano);
+  box.replaceChildren(el("div", { class: "setup card" },
+    el("h2", {}, tr("Pliki STL systemu VAULT")),
+    el("p", {}, tr("Konfigurator potrzebuje folderu z plikami VAULT od USSA Design (podfoldery 01. DRAWERS, 02. SUSTAINERS, 03. MODIFICATIONS). Wskaż go – program zapamięta ścieżkę i odczyta listę plików.")),
+    found ? el("p", {}, el("b", {}, tr("Znaleziono bibliotekę – kliknij „Sprawdź i skanuj” (za pierwszym razem ok. 2–3 minut)."))) : null,
+    el("div", { class: "row" },
+      el("input", { type: "text", value: SETUP.path, style: "flex:1;min-width:240px", title: tr("pełna ścieżka do katalogu z plikami VAULT (STL/PDF)"),
+        oninput: e => { SETUP.path = e.target.value; }, onkeydown: e => { if (e.key === "Enter") check(); } }),
+      SERVER.wybor ? el("button", { onclick: pick, disabled: scanning }, tr("Wybierz folder…")) : null),
+    el("div", { class: "row" },
+      el("button", { class: "primary", onclick: check, disabled: scanning }, tr("Sprawdź i skanuj")),
+      el("button", { onclick: () => { SETUP.skip = true; renderSetup(); } }, tr("Pomiń"))),
+    scanning ? el("p", { class: "hint" }, "⏳ ", st.step || "", el("br"), tr("Nowe pliki: ok. 2–3 min na 20 GB; znane pliki są pomijane.")) : null,
+    err ? el("p", { class: "err" }, err) : null,
+    !scanning && st.kind === "skan" && st.error ? el("p", { class: "err" }, tr("Błąd skanowania:") + " " + st.error) : null,
+    err || !s.ok ? el("p", { class: "setup-ussa" }, tr("Nie masz plików? Kupisz je na stronie producenta:") + " ",
+      el("a", { href: USSA_URL, target: "_blank", rel: "noopener" }, "ussadesign.com/pages/vault")) : null));
+}
+
+function renderDocs() {
+  const box = $("docsBox");
+  if (!DOCS.length) { box.replaceChildren(el("p", { class: "hint" }, tr("Brak plików PDF/obrazów w bibliotece."))); return; }
+  const link = d => el("div", {}, el("a", { href: fileUrl(d), target: "_blank", title: d }, d.split("/").pop().replace(/\.(pdf|png|jpe?g)$/i, "")));
+  const top = DOCS.filter(d => !d.includes("/")), deeper = DOCS.filter(d => d.includes("/"));
+  box.replaceChildren(...top.map(link),
+    deeper.length ? el("details", {}, el("summary", { class: "hint" }, tr("Pozostałe ({n})", { n: deeper.length })), ...deeper.map(link)) : null);
+}
+
+function renderJob(box, parts) {
+  const j = state.job, setj = k => v => { j[k] = v; save(); renderResult(); };
+  const ok = parts.filter(e => !e.missing), pieces = ok.reduce((n, e) => n + e.qty, 0);
+  if (!PRINTERS[j.printer] && j.printer !== "custom") j.printer = PRINTERS[j.printer.split("_")[0]] ? j.printer.split("_")[0] : "h2s";
+  const pr = PRINTERS[j.printer], A = pr && symArea(pr);
+  const form = el("div", {},
+    el("div", { class: "row" }, tr("Nazwa folderu:") + " ",
+      el("input", { type: "text", value: j.name || "", placeholder: defaultJobName(), style: "flex:1;min-width:200px",
+        onchange: e => { j.name = e.target.value; save(); renderResult(); } }),
+      j.name ? el("button", { class: "small", title: tr("przywróć nazwę z zestawów"), onclick: () => { j.name = ""; save(); renderResult(); } }, "✕") : null),
+    el("div", { class: "row" }, tr("Drukarka:") + " ",
+      sel(j.printer, [...Object.entries(PRINTERS).map(([k, v]) => [k, printerLabel(v)]), ["custom", tr("własny stół…")]], setj("printer")),
+      j.printer === "custom" ? el("span", {}, tr("stół") + " ", ...[0, 1, 2].flatMap(i => [num(j.bed[i], v => { j.bed[i] = v; save(); renderResult(); }, 50), i < 2 ? " × " : " mm"])) : null),
+    pr ? el("p", { class: "hint" }, tr("Części trafią w obszar X {x0}–{x1}, Y {y0}–{y1} mm (stół {bw}×{bd}), wysokość do {h} mm", { x0: A[0], x1: A[2], y0: A[1], y1: A[3], bw: pr.bed[0], bd: pr.bed[1], h: pr.h }) +
+      ([...pr.exclude, ...pr.wrap].length ? tr(", z pominięciem stref {zones}", { zones: [...pr.exclude, ...pr.wrap].map(e => `X ${e[0]}–${e[2]} / Y ${e[1]}–${e[3]}`).join(", ") }) : "") +
+      tr(". Układ płyty jest wyśrodkowany na stole, bo tak ustawia go Bambu Studio przy imporcie.")) : null,
+    pr && pr.note ? el("p", { class: "hint" }, "ℹ " + tr(pr.note)) : null,
+    pr && pr.nozzle ? el("p", { class: "err" }, tr(pr.nozzle === "left"
+      ? "Wariant jednej dyszy: część elementów trafi w pas, do którego sięga tylko lewa dysza. Po otwarciu 3MF przypisz filament do lewej dyszy, inaczej pojawi się błąd „Pozycja lub rozmiar…”."
+      : "Wariant jednej dyszy: część elementów trafi w pas, do którego sięga tylko prawa dysza. Po otwarciu 3MF przypisz filament do prawej dyszy, inaczej pojawi się błąd „Pozycja lub rozmiar…”.")) : null,
+    el("div", { class: "row" }, tr("Odstęp między częściami:") + " ", num(j.gap, setj("gap"), 0), " mm"),
+    el("div", { class: "row" }, chk(j.copy, tr("skopiuj pliki STL do folderu do_druku"), setj("copy")),
+      chk(j.make3mf, tr("utwórz płyty 3MF z rozmieszczonymi częściami"), setj("make3mf"))));
+  const all = SERVER.status || {}, st = all.kind === "skan" ? {} : all;  // wynik skanowania pokazuje panel biblioteki
+  const busy = !!all.running;
+  const go = el("button", { class: "primary", disabled: !ok.length || busy || !(j.copy || j.make3mf) || !SERVER.ok || SERVER.stale, onclick: async () => {
+    try { await api("/api/druk", jobPayload(parts)); SERVER.status = { running: true, step: "start" }; renderResult(); pollJob(); }
+    catch (e) { alert(e.message); }
+  } }, busy ? tr("Trwa przygotowanie…") : tr("Przygotuj do druku ({n} szt.)", { n: pieces }));
+  const out = [el("h3", {}, tr("Przygotowanie wydruku")), form, el("div", { class: "row" }, go)];
+  if (SERVER.stale) out.push(el("p", { class: "err" },
+    tr("Serwer działa na starszej wersji programu (inne obszary drukarek). Zamknij okno konsoli serwera, uruchom ponownie uruchom.bat i odśwież tę stronę.")));
+  if (!SERVER.checked) out.push(el("p", { class: "hint" }, tr("Sprawdzam serwer…")));
+  else if (!SERVER.ok) out.push(el("div", { class: "hint" },
+    el("p", { class: "err" }, tr("Konfigurator nie jest uruchomiony przez serwer, więc przeglądarka nie ma dostępu do plików.")),
+    el("p", {}, tr("Zamknij tę kartę i uruchom uruchom.bat w folderze konfigurator (otworzy konfigurator z obsługą plików). Projekt zapisuje się w przeglądarce osobno dla każdego adresu – przenieś go przyciskami Zapisz/Wczytaj projekt.")),
+    el("p", {}, tr("Możesz też pobrać zlecenie i uruchomić je ręcznie:") + " ", el("code", {}, "python druk.py " + tr("vault-zlecenie.json"))),
+    el("button", { onclick: () => download(new Blob([JSON.stringify(jobPayload(parts), null, 1)], { type: "application/json" }), tr("vault-zlecenie.json")) }, tr("Pobierz zlecenie (JSON)"))));
+  if (busy) out.push(el("p", {}, "⏳ ", st.step || ""), el("p", { class: "hint" }, tr("Duże moduły (XL) mają do 340 MB – ich zapis do 3MF trwa do kilkudziesięciu sekund.")));
+  if (st.error) out.push(el("p", { class: "err" }, tr("Błąd:") + " " + st.error));
+  if (!busy && st.result) {
+    const r = st.result;
+    out.push(el("h3", {}, tr("Gotowe")),
+      el("p", {}, tr("Folder: {dir}", { dir: r.folder }), el("br"), tr("Skopiowano plików: {copied} · płyt 3MF: {plates} · czas: {sec} s", { copied: r.copied, plates: r.plates.length, sec: r.seconds })),
+      el("div", { class: "row" }, el("button", { onclick: () => api("/api/otworz", {}).catch(e => alert(e.message)) }, tr("Otwórz folder"))));
+    if (r.lang && r.lang !== LANG) out.push(el("p", { class: "hint" }, tr("Komunikaty poniżej pochodzą z zadania wykonanego w innym języku.")));
+    for (const w of r.warnings) out.push(el("p", { class: "err", lang: r.lang || LANG }, "⚠ " + w));
+    if (r.plates.length) {
+      const tb = el("tbody");
+      for (const p of r.plates) tb.append(el("tr", { class: p.too_big ? "missing" : "" },
+        el("td", {}, p.file, el("div", { class: "path" }, p.material)),
+        el("td", { class: "used" }, Object.entries(p.items).map(([n, q]) => `${q}× ${n.replace(/\.stl$/i, "")}`).join(", ")),
+        el("td", { class: "q" }, fmtTime(p.sec), el("div", { class: "path" }, fmtG(p.g)))));
+      out.push(el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, tr("Płyta")), el("th", {}, tr("Zawartość")), el("th", { class: "q" }, tr("Czas · filament")))), tb),
+        el("p", { class: "hint" }, tr("Otwórz plik 3MF w Bambu Studio / OrcaSlicer / PrusaSlicer, wybierz profil i filament, włącz podpory dla części „Turn On Supports”. Części są w orientacji z plików STL.")));
+    }
+  }
+  box.replaceChildren(...out);
+}
+function download(blob, name) {
+  const a = el("a", { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+
+// ---------- Zdarzenia ----------
+$("btnAddStack").onclick = () => { state.stacks.push(newStack(state.stacks.length + 1)); state.current = state.stacks.length - 1; update(); };
+$("btnDupStack").onclick = () => {
+  const c = JSON.parse(JSON.stringify(cur())); c.id = uid++; c.name += " " + tr("(kopia)"); c.layers.forEach(l => l.id = uid++);
+  state.stacks.splice(state.current + 1, 0, c); state.current++; update();
+};
+$("btnDelStack").onclick = () => {
+  if (state.stacks.length === 1 || !confirm(tr("Usunąć „{name}”?", { name: cur().name }))) return;
+  state.stacks.splice(state.current, 1); state.current = Math.max(0, state.current - 1); update();
+};
+$("optLang").onchange = e => {
+  state.lang = e.target.value;
+  // domyślne nazwy zestawów („Zestaw 3” / „Set 3”) idą za językiem; nazwy nadane przez użytkownika zostają
+  const domyslne = Object.values(I18N).map(d => d["Zestaw {n}"]).concat("Zestaw {n}")
+    .map(w => new RegExp("^" + w.replace("{n}", "(\\d+)") + "$"));
+  LANG = resolveLang(state.lang);
+  for (const st of state.stacks) {
+    const m = domyslne.map(r => st.name.match(r)).find(Boolean);
+    if (m) st.name = tr("Zestaw {n}", { n: m[1] });
+  }
+  update();
+  if (SERVER.ok) checkServer();  // komunikaty serwera (np. o bibliotece) w nowym języku
+};
+$("optKey").onchange = e => { state.key = e.target.value; update(); };
+$("optRails").onchange = e => { state.rails = e.target.value; update(); };
+$("optSpeed").onchange = e => { state.speed = Math.min(5, Math.max(0.2, parseFloat(e.target.value) || 1)); update(); };
+$("optPrice").onchange = e => { state.price = Math.max(0, parseFloat(e.target.value) || 0); update(); };
+document.querySelectorAll(".tabs button[data-tab]").forEach(btn => btn.onclick = () => { state.tab = btn.dataset.tab; update(); });
+$("btnCsv").onclick = exportCsv;
+$("btnSave").onclick = () => download(new Blob([JSON.stringify(state, null, 1)], { type: "application/json" }), tr("vault-projekt.json"));
+$("btnLoad").onclick = () => $("fileLoad").click();
+$("fileLoad").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const s = JSON.parse(await f.text());
+    if (!Array.isArray(s.stacks) || !s.stacks.length) throw new Error();
+    state = Object.assign(state, s, { current: 0 }); fixIds(); update();
+  } catch { alert(tr("To nie jest plik projektu konfiguratora.")); }
+  e.target.value = "";
+};
+
+function render() {
+  LANG = resolveLang(state.lang);
+  applyStaticTr();
+  $("optLang").value = state.lang || "auto";
+  $("optKey").value = state.key; $("optRails").value = state.rails;
+  $("optSpeed").value = state.speed; $("optPrice").value = state.price;
+  renderStacks(); renderEditor(); renderExtras(); renderResult(); renderLibrary(); renderDocs();
+}
+
+load();
+update();
+if (!FILES.length) document.body.prepend(el("p", { class: "err", style: "padding:12px" },
+  tr("Brak listy plików – ustaw katalog biblioteki w panelu „Biblioteka plików” (uruchom.bat) albo uruchom: python skanuj.py \"D:\\ścieżka\\vault\"")));
+checkServer().then(() => { if (state.tab === "job") renderResult(); });
+</script>
+</body>
+</html>
