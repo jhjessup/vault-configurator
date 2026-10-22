@@ -950,7 +950,7 @@ function renderLibrary() {
     out.push(el("p", { class: "hint" }, tr("Gotowe wydruki trafiają do: {dir}", { dir: s.wyjscie })));
     if (SERVER.wersja) out.push(el("p", { class: "hint" }, tr("Wersja programu: {v}", { v: SERVER.wersja })));
   } else if (SERVER.checked) {
-    out.push(el("p", { class: "hint" }, tr("Zmiana katalogu: uruchom.bat (panel tutaj) albo w konsoli:") + " ", el("code", {}, tr('python skanuj.py "D:\\ścieżka\\vault"'))));
+    out.push(el("p", { class: "hint" }, tr("Zmiana katalogu: uruchom.bat / run.sh (panel tutaj) albo w konsoli:") + " ", el("code", {}, tr('python skanuj.py "D:\\ścieżka\\vault"'))));
   }
   box.replaceChildren(...out);
   renderSetup();
@@ -1042,11 +1042,11 @@ function renderJob(box, parts) {
   } }, busy ? tr("Trwa przygotowanie…") : tr("Przygotuj do druku ({n} szt.)", { n: pieces }));
   const out = [el("h3", {}, tr("Przygotowanie wydruku")), form, el("div", { class: "row" }, go)];
   if (SERVER.stale) out.push(el("p", { class: "err" },
-    tr("Serwer działa na starszej wersji programu (inne obszary drukarek). Zamknij okno konsoli serwera, uruchom ponownie uruchom.bat i odśwież tę stronę.")));
+    tr("Serwer działa na starszej wersji programu (inne obszary drukarek). Zamknij okno konsoli serwera, uruchom ponownie uruchom.bat / run.sh i odśwież tę stronę.")));
   if (!SERVER.checked) out.push(el("p", { class: "hint" }, tr("Sprawdzam serwer…")));
   else if (!SERVER.ok) out.push(el("div", { class: "hint" },
     el("p", { class: "err" }, tr("Konfigurator nie jest uruchomiony przez serwer, więc przeglądarka nie ma dostępu do plików.")),
-    el("p", {}, tr("Zamknij tę kartę i uruchom uruchom.bat w folderze konfigurator (otworzy konfigurator z obsługą plików). Projekt zapisuje się w przeglądarce osobno dla każdego adresu – przenieś go przyciskami Zapisz/Wczytaj projekt.")),
+    el("p", {}, tr("Zamknij tę kartę i uruchom uruchom.bat / run.sh w folderze konfigurator (otworzy konfigurator z obsługą plików). Projekt zapisuje się w przeglądarce osobno dla każdego adresu – przenieś go przyciskami Zapisz/Wczytaj projekt.")),
     el("p", {}, tr("Możesz też pobrać zlecenie i uruchomić je ręcznie:") + " ", el("code", {}, "python druk.py " + tr("vault-zlecenie.json"))),
     el("button", { onclick: () => download(new Blob([JSON.stringify(jobPayload(parts), null, 1)], { type: "application/json" }), tr("vault-zlecenie.json")) }, tr("Pobierz zlecenie (JSON)"))));
   if (busy) out.push(el("p", {}, "⏳ ", st.step || ""), el("p", { class: "hint" }, tr("Duże moduły (XL) mają do 340 MB – ich zapis do 3MF trwa do kilkudziesięciu sekund.")));
@@ -1129,7 +1129,7 @@ function render() {
 load();
 update();
 if (!FILES.length) document.body.prepend(el("p", { class: "err", style: "padding:12px" },
-  tr("Brak listy plików – ustaw katalog biblioteki w panelu „Biblioteka plików” (uruchom.bat) albo uruchom: python skanuj.py \"D:\\ścieżka\\vault\"")));
+  tr("Brak listy plików – ustaw katalog biblioteki w panelu „Biblioteka plików” (uruchom.bat / run.sh) albo uruchom: python skanuj.py \"D:\\ścieżka\\vault\"")));
 checkServer().then(() => { if (state.tab === "job") renderResult(); });
 </script>
 </body>
