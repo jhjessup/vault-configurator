@@ -3,6 +3,7 @@
 Zapisywane w ustawienia.json obok skryptów. Bez pliku ustawień przyjmowane są wartości domyślne:
 biblioteka = ..\\vault (jeśli istnieje, inaczej katalog nadrzędny), wyjście = ..\\do_druku.
 "zeskanowano" = katalog, z którego skanuj.py zrobił katalog.js (brak, póki nie było skanu na tym komputerze).
+"dane_ussa" = plik ussa_print_data.json (dane USSA Design, nie ma ich w repo) – opcjonalnie, patrz plik_danych_ussa().
 """
 import json
 from pathlib import Path
@@ -30,6 +31,7 @@ def wczytaj():
         "biblioteka": Path(d.get("biblioteka") or _domyslna_biblioteka()).resolve(),
         "wyjscie": Path(d.get("wyjscie") or TU.parent / "do_druku").resolve(),
         "zeskanowano": Path(d["zeskanowano"]).resolve() if d.get("zeskanowano") else None,
+        "dane_ussa": Path(d["dane_ussa"]).resolve() if d.get("dane_ussa") else None,
     }
 
 
@@ -43,6 +45,16 @@ def zapisz(biblioteka=None, wyjscie=None, zeskanowano=None):
         u["zeskanowano"] = Path(zeskanowano).resolve()
     PLIK.write_text(json.dumps({k: str(v) for k, v in u.items() if v}, ensure_ascii=False, indent=1), encoding="utf-8")
     return u
+
+
+def plik_danych_ussa():
+    """-> Path | None. Czasy i gramy druku USSA: "dane_ussa" z ustawień, inaczej ussa_print_data.json
+    w katalogu biblioteki, inaczej dane/ussa_print_data.json obok skryptów (układ z wydania rawel2)."""
+    u = wczytaj()
+    for p in (u["dane_ussa"], u["biblioteka"] / "ussa_print_data.json", TU / "dane" / "ussa_print_data.json"):
+        if p and p.is_file():
+            return p
+    return None
 
 
 def sprawdz_biblioteke(sciezka):
