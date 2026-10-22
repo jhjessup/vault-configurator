@@ -3,7 +3,7 @@
 Udostępnia konfigurator w przeglądarce i wykonuje zadania na plikach
 (kopiowanie STL, tworzenie płyt 3MF, skanowanie biblioteki). Działa tylko na tym komputerze (127.0.0.1).
 
-    python serwer.py          (albo dwuklik na uruchom.bat)
+    python serwer.py          (albo dwuklik na uruchom.bat; Linux: ./run.sh)
 
 Adresy:  /konfigurator/...  – pliki konfiguratora
          /biblioteka/...    – pliki z katalogu biblioteki VAULT (ustawienia.json)
@@ -13,6 +13,7 @@ import importlib.util
 import json
 import os
 import posixpath
+import subprocess
 import sys
 import threading
 import traceback
@@ -79,6 +80,15 @@ WERSJA = (TU / "wersja.txt").read_text(encoding="utf-8").strip() if (TU / "wersj
 WYBOR_KATALOGU = importlib.util.find_spec("tkinter") is not None
 WYBOR_BLOKADA = threading.Lock()
 USSA_URL = "https://www.ussadesign.com/pages/vault"
+
+
+def otworz_folder(sciezka):
+    """Otwiera folder w systemowym menedżerze plików."""
+    if sys.platform == "win32":
+        os.startfile(sciezka)
+    else:
+        subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", sciezka],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def wybierz_katalog():
@@ -205,7 +215,10 @@ class Obsluga(SimpleHTTPRequestHandler):
             cel = (STAN.get("result") or {}).get("folder") if dane.get("co") != "biblioteka" \
                 else str(ustawienia.wczytaj()["biblioteka"])
             if cel and Path(cel).is_dir():
-                os.startfile(cel)
+                try:
+                    otworz_folder(cel)
+                except OSError:  # np. Linux bez xdg-open
+                    return self._json({"error": tr("Nie można otworzyć folderu: {dir}", dir=cel)}, 500)
                 return self._json({"ok": True})
             return self._json({"error": tr("brak folderu")}, 404)
         return self._json({"error": tr("nie ma takiego adresu")}, 404)
@@ -214,7 +227,8 @@ class Obsluga(SimpleHTTPRequestHandler):
 class Serwer(ThreadingHTTPServer):
     # Na Windows SO_REUSEADDR pozwala dwóm serwerom zająć ten sam port (odpowiada wtedy stary) –
     # wyłączone, żeby drugie uruchomienie dostało błąd zamiast cicho działać obok pierwszego.
-    allow_reuse_address = False
+    # Na Linuksie/macOS tak nie działa, a bez niego ponowne uruchomienie tuż po zamknięciu trafia na zajęty port.
+    allow_reuse_address = sys.platform != "win32"
     daemon_threads = True
 
 

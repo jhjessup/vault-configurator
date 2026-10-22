@@ -123,7 +123,7 @@ window.VAULT_I18N = {
 "Nowe pliki: ok. 2–3 min na 20 GB; znane pliki są pomijane.": "New files: about 2–3 min per 20 GB; known files are skipped.",
 "Błąd skanowania:": "Scan error:",
 "Gotowe wydruki trafiają do: {dir}": "Prepared prints go to: {dir}",
-"Zmiana katalogu: uruchom.bat (panel tutaj) albo w konsoli:": "To change the folder: run.bat (panel here) or in a console:",
+"Zmiana katalogu: uruchom.bat / run.sh (panel tutaj) albo w konsoli:": "To change the folder: run.bat / run.sh (panel here) or in a console:",
 "Brak plików PDF/obrazów w bibliotece.": "No PDF/image files in the library.",
 "Pozostałe ({n})": "Other ({n})",
 "Nazwa folderu:": "Folder name:",
@@ -140,10 +140,10 @@ window.VAULT_I18N = {
 "Trwa przygotowanie…": "Preparing…",
 "Przygotuj do druku ({n} szt.)": "Prepare for printing ({n} pcs)",
 "Przygotowanie wydruku": "Print preparation",
-"Serwer działa na starszej wersji programu (inne obszary drukarek). Zamknij okno konsoli serwera, uruchom ponownie uruchom.bat i odśwież tę stronę.": "The server is running an older version of the program (different printer areas). close the server console window, run run.bat again and reload this page.",
+"Serwer działa na starszej wersji programu (inne obszary drukarek). Zamknij okno konsoli serwera, uruchom ponownie uruchom.bat / run.sh i odśwież tę stronę.": "The server is running an older version of the program (different printer areas). Close the server console window, run run.bat / run.sh again and reload this page.",
 "Sprawdzam serwer…": "Checking the server…",
 "Konfigurator nie jest uruchomiony przez serwer, więc przeglądarka nie ma dostępu do plików.": "The configurator is not running through the server, so the browser has no access to the files.",
-"Zamknij tę kartę i uruchom uruchom.bat w folderze konfigurator (otworzy konfigurator z obsługą plików). Projekt zapisuje się w przeglądarce osobno dla każdego adresu – przenieś go przyciskami Zapisz/Wczytaj projekt.": "Close this tab and run run.bat in the konfigurator folder (it opens the configurator with file access). The project is stored in the browser separately for each address – move it with the Save/Load project buttons.",
+"Zamknij tę kartę i uruchom uruchom.bat / run.sh w folderze konfigurator (otworzy konfigurator z obsługą plików). Projekt zapisuje się w przeglądarce osobno dla każdego adresu – przenieś go przyciskami Zapisz/Wczytaj projekt.": "Close this tab and run run.bat / run.sh in the konfigurator folder (it opens the configurator with file access). The project is stored in the browser separately for each address – move it with the Save/Load project buttons.",
 "Możesz też pobrać zlecenie i uruchomić je ręcznie:": "You can also download the job and run it manually:",
 "vault-zlecenie.json": "vault-job.json",
 "Pobierz zlecenie (JSON)": "Download job (JSON)",
@@ -160,7 +160,7 @@ window.VAULT_I18N = {
 "Usunąć „{name}”?": "Delete “{name}”?",
 "vault-projekt.json": "vault-project.json",
 "To nie jest plik projektu konfiguratora.": "This is not a configurator project file.",
-"Brak listy plików – ustaw katalog biblioteki w panelu „Biblioteka plików” (uruchom.bat) albo uruchom: python skanuj.py \"D:\\ścieżka\\vault\"": "No file list – set the library folder in the “File library” panel (run.bat) or run: python skanuj.py \"D:\\path\\vault\"",
+"Brak listy plików – ustaw katalog biblioteki w panelu „Biblioteka plików” (uruchom.bat / run.sh) albo uruchom: python skanuj.py \"D:\\ścieżka\\vault\"": "No file list – set the library folder in the “File library” panel (run.bat / run.sh) or run: python skanuj.py \"D:\\path\\vault\"",
 "python skanuj.py \"D:\\ścieżka\\vault\"": "python skanuj.py \"D:\\path\\vault\"",
 "{n} warstwa": "{n} layer",
 "{n} warstw": "{n} layers",
@@ -393,6 +393,7 @@ window.VAULT_I18N = {
 "Model gramy = {a}·cm3 + {b}·cm2   błąd mediana {med}, 90% {p90}": "Grams model = {a}·cm3 + {b}·cm2   error median {med}, 90% {p90}",
 "Model czas  = {a}·cm3 + {b}·cm2 [s]  błąd mediana {med}, 90% {p90}": "Time model  = {a}·cm3 + {b}·cm2 [s]  error median {med}, 90% {p90}",
 "Akcesoria skrzynki: model {ms} s / {mg} g, arkusz {ds} s / {dg} g -> skala czas {kt}, masa {kg}": "Box accessories: model {ms} s / {mg} g, data sheet {ds} s / {dg} g -> scale time {kt}, mass {kg}",
-"Zapisano {file}": "Saved {file}"
+"Zapisano {file}": "Saved {file}",
+"Nie można otworzyć folderu: {dir}": "Cannot open the folder: {dir}"
 }
 };

@@ -16,3 +16,6 @@ dane/
 
 # Build output
 dist/
+
+# Local Python environment created by run.sh
+.venv/
